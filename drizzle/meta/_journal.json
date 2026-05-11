@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1778532907799,
+      "tag": "0000_create_custos",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1778533672665,
+      "tag": "0001_create_feedbacks",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1778534619552,
+      "tag": "0002_create_tarefas",
+      "breakpoints": true
+    }
+  ]
+}
