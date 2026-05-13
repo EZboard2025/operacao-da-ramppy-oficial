@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { ListTodo, MessageSquare, Wallet, ArrowRight, TrendingUp, TrendingDown } from "lucide-react";
+import {
+	ListTodo,
+	MessageSquare,
+	Wallet,
+	Banknote,
+	ArrowRight,
+	TrendingUp,
+	TrendingDown,
+} from "lucide-react";
 
 export default function Home() {
 	return (
@@ -7,11 +15,11 @@ export default function Home() {
 			<header>
 				<h1 className="text-3xl font-bold text-[var(--color-foreground)]">Bem-vindo de volta 👋</h1>
 				<p className="mt-1 text-sm text-[var(--color-muted)]">
-					Visão geral da operação Rampy — tarefas, feedback e financeiro num só lugar.
+					Visão geral da operação Rampy — tarefas, feedback, vendas e custos num só lugar.
 				</p>
 			</header>
 
-			<section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+			<section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 				<StatCard
 					label="Tarefas em aberto"
 					value="—"
@@ -27,6 +35,13 @@ export default function Home() {
 					icon={<MessageSquare className="h-5 w-5" />}
 				/>
 				<StatCard
+					label="MRR atual"
+					value="—"
+					trend="Em breve"
+					trendType="neutral"
+					icon={<Banknote className="h-5 w-5" />}
+				/>
+				<StatCard
 					label="Margem do mês"
 					value="—"
 					trend="Em breve"
@@ -35,7 +50,7 @@ export default function Home() {
 				/>
 			</section>
 
-			<section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+			<section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 				<ModuleCard
 					title="Tarefas da equipe"
 					description="Organize o trabalho da equipe em quadros, listas e responsáveis."
@@ -47,6 +62,12 @@ export default function Home() {
 					description="Centralize o que os clientes estão dizendo e transforme em ação."
 					href="/feedback"
 					icon={<MessageSquare className="h-6 w-6" />}
+				/>
+				<ModuleCard
+					title="Vendas"
+					description="Clientes, receita recorrente e visão da carteira."
+					href="/vendas"
+					icon={<Banknote className="h-6 w-6" />}
 				/>
 				<ModuleCard
 					title="Custos"

@@ -7,6 +7,7 @@ import {
 	ListTodo,
 	MessageSquare,
 	Wallet,
+	Banknote,
 	Settings,
 	LogOut,
 	TrendingUp,
@@ -16,6 +17,7 @@ const navItems = [
 	{ href: "/", label: "Home", icon: LayoutDashboard },
 	{ href: "/tarefas", label: "Tarefas", icon: ListTodo },
 	{ href: "/feedback", label: "Feedback", icon: MessageSquare },
+	{ href: "/vendas", label: "Vendas", icon: Banknote },
 	{ href: "/financeiro", label: "Custos", icon: Wallet },
 ];
 

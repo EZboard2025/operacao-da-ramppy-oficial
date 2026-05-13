@@ -61,3 +61,20 @@ export const colunas = sqliteTable("colunas", {
 
 export type ColunaRow = typeof colunas.$inferSelect;
 export type ColunaInsert = typeof colunas.$inferInsert;
+
+export const vendas = sqliteTable("vendas", {
+	id: text("id").primaryKey(),
+	cliente: text("cliente").notNull(),
+	numeroFuncionarios: integer("numero_funcionarios").notNull().default(0),
+	valorMensalBRL: real("valor_mensal_brl").notNull(),
+	plano: text("plano").notNull().default(""),
+	status: text("status").notNull(),
+	dataInicio: integer("data_inicio", { mode: "timestamp" }).notNull(),
+	notas: text("notas").notNull().default(""),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+export type VendaRow = typeof vendas.$inferSelect;
+export type VendaInsert = typeof vendas.$inferInsert;
