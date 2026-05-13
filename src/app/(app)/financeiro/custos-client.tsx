@@ -9,17 +9,22 @@ import {
 	CheckCircle2,
 	CircleDashed,
 	X,
+	Trash2,
+	Pencil,
 } from "lucide-react";
 import {
 	type Custo,
 	type CustoCobranca,
 	type CustoStatus,
 	formatBRL,
+	formatData,
 } from "@/lib/custos";
-import { createCusto } from "./actions";
+import { createCusto, deleteCusto, updateCusto } from "./actions";
+
+type Modal = { tipo: "fechado" } | { tipo: "criar" } | { tipo: "editar"; custo: Custo };
 
 export function CustosClient({ custos }: { custos: Custo[] }) {
-	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [modal, setModal] = useState<Modal>({ tipo: "fechado" });
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
 
@@ -27,11 +32,27 @@ export function CustosClient({ custos }: { custos: Custo[] }) {
 	const totalAnual = totalMensal * 12;
 	const ativos = custos.filter((c) => c.status === "ativo").length;
 
-	const handleAddCusto = (novo: Omit<Custo, "id">) => {
+	const handleCreate = (input: Omit<Custo, "id">) => {
 		startTransition(async () => {
-			await createCusto(novo);
+			await createCusto(input);
 			router.refresh();
-			setIsModalOpen(false);
+			setModal({ tipo: "fechado" });
+		});
+	};
+
+	const handleUpdate = (id: string, campos: Partial<Omit<Custo, "id">>) => {
+		startTransition(async () => {
+			await updateCusto(id, campos);
+			router.refresh();
+			setModal({ tipo: "fechado" });
+		});
+	};
+
+	const handleDelete = (id: string) => {
+		startTransition(async () => {
+			await deleteCusto(id);
+			router.refresh();
+			setModal({ tipo: "fechado" });
 		});
 	};
 
@@ -43,7 +64,7 @@ export function CustosClient({ custos }: { custos: Custo[] }) {
 				</div>
 				<button
 					type="button"
-					onClick={() => setIsModalOpen(true)}
+					onClick={() => setModal({ tipo: "criar" })}
 					className="flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)]"
 				>
 					<Plus className="h-4 w-4" />
@@ -78,12 +99,12 @@ export function CustosClient({ custos }: { custos: Custo[] }) {
 						Planilha de custos
 					</h2>
 					<span className="text-xs text-[var(--color-muted)]">
-						Valores em BRL · salvos no banco D1
+						Valores em BRL · clique numa linha pra editar
 					</span>
 				</div>
 
 				{custos.length === 0 ? (
-					<EmptyState onAdd={() => setIsModalOpen(true)} />
+					<EmptyState onAdd={() => setModal({ tipo: "criar" })} />
 				) : (
 					<div className="overflow-x-auto">
 						<table className="w-full text-sm">
@@ -95,6 +116,7 @@ export function CustosClient({ custos }: { custos: Custo[] }) {
 									<th className="px-5 py-3">Cobrança</th>
 									<th className="px-5 py-3 text-right">Custo mensal</th>
 									<th className="px-5 py-3">Status</th>
+									<th className="px-5 py-3">Início</th>
 									<th className="px-5 py-3">Notas</th>
 								</tr>
 							</thead>
@@ -102,10 +124,14 @@ export function CustosClient({ custos }: { custos: Custo[] }) {
 								{custos.map((c) => (
 									<tr
 										key={c.id}
-										className="border-b border-[var(--color-border)] transition-colors last:border-b-0 hover:bg-[var(--color-background)]"
+										onClick={() => setModal({ tipo: "editar", custo: c })}
+										className="group cursor-pointer border-b border-[var(--color-border)] transition-colors last:border-b-0 hover:bg-[var(--color-background)]"
 									>
 										<td className="px-5 py-3 font-medium text-[var(--color-foreground)]">
-											{c.servico}
+											<div className="flex items-center gap-2">
+												{c.servico}
+												<Pencil className="h-3 w-3 text-[var(--color-muted)] opacity-0 transition-opacity group-hover:opacity-100" />
+											</div>
 										</td>
 										<td className="px-5 py-3 text-[var(--color-muted)]">{c.categoria}</td>
 										<td className="px-5 py-3 text-[var(--color-muted)]">{c.plano}</td>
@@ -117,6 +143,9 @@ export function CustosClient({ custos }: { custos: Custo[] }) {
 										</td>
 										<td className="px-5 py-3">
 											<StatusBadge status={c.status} />
+										</td>
+										<td className="px-5 py-3 text-xs text-[var(--color-muted)]">
+											{c.dataInicio ? formatData(c.dataInicio) : "—"}
 										</td>
 										<td className="px-5 py-3 text-xs text-[var(--color-muted)]">{c.notas}</td>
 									</tr>
@@ -130,7 +159,7 @@ export function CustosClient({ custos }: { custos: Custo[] }) {
 									<td className="px-5 py-3 text-right text-[var(--color-foreground)] tabular-nums">
 										{formatBRL(totalMensal)}
 									</td>
-									<td className="px-5 py-3" colSpan={2}></td>
+									<td className="px-5 py-3" colSpan={3}></td>
 								</tr>
 							</tfoot>
 						</table>
@@ -138,12 +167,15 @@ export function CustosClient({ custos }: { custos: Custo[] }) {
 				)}
 			</section>
 
-			{isModalOpen && (
-				<NovoCustoModal
+			{modal.tipo !== "fechado" && (
+				<CustoModal
+					custo={modal.tipo === "editar" ? modal.custo : undefined}
 					categoriasExistentes={Array.from(new Set(custos.map((c) => c.categoria)))}
 					isSaving={isPending}
-					onClose={() => !isPending && setIsModalOpen(false)}
-					onSubmit={handleAddCusto}
+					onClose={() => !isPending && setModal({ tipo: "fechado" })}
+					onCreate={handleCreate}
+					onUpdate={handleUpdate}
+					onDelete={handleDelete}
 				/>
 			)}
 		</div>
@@ -237,24 +269,40 @@ function CobrancaBadge({ tipo }: { tipo: CustoCobranca }) {
 	);
 }
 
-function NovoCustoModal({
+function CustoModal({
+	custo,
 	categoriasExistentes,
 	isSaving,
 	onClose,
-	onSubmit,
+	onCreate,
+	onUpdate,
+	onDelete,
 }: {
+	custo?: Custo;
 	categoriasExistentes: string[];
 	isSaving: boolean;
 	onClose: () => void;
-	onSubmit: (custo: Omit<Custo, "id">) => void;
+	onCreate: (input: Omit<Custo, "id">) => void;
+	onUpdate: (id: string, campos: Partial<Omit<Custo, "id">>) => void;
+	onDelete: (id: string) => void;
 }) {
-	const [servico, setServico] = useState("");
-	const [categoria, setCategoria] = useState("");
-	const [plano, setPlano] = useState("");
-	const [custoMensal, setCustoMensal] = useState("");
-	const [cobranca, setCobranca] = useState<CustoCobranca>("mensal");
-	const [status, setStatus] = useState<CustoStatus>("ativo");
-	const [notas, setNotas] = useState("");
+	const editando = !!custo;
+
+	const [servico, setServico] = useState(custo?.servico ?? "");
+	const [categoria, setCategoria] = useState(custo?.categoria ?? "");
+	const [plano, setPlano] = useState(custo?.plano && custo.plano !== "—" ? custo.plano : "");
+	const [custoMensal, setCustoMensal] = useState(
+		custo?.custoMensalBRL !== undefined ? String(custo.custoMensalBRL).replace(".", ",") : "",
+	);
+	const [cobranca, setCobranca] = useState<CustoCobranca>(custo?.cobranca ?? "mensal");
+	const [status, setStatus] = useState<CustoStatus>(custo?.status ?? "ativo");
+	const [notas, setNotas] = useState(custo?.notas ?? "");
+	const [dataInicio, setDataInicio] = useState(
+		custo?.dataInicio
+			? custo.dataInicio.toISOString().slice(0, 10)
+			: new Date().toISOString().slice(0, 10),
+	);
+	const [confirmarExclusao, setConfirmarExclusao] = useState(false);
 
 	useEffect(() => {
 		const handleEsc = (e: KeyboardEvent) => {
@@ -272,7 +320,7 @@ function NovoCustoModal({
 		e.preventDefault();
 		const valor = parseFloat(custoMensal.replace(",", "."));
 		if (!servico.trim() || isNaN(valor)) return;
-		onSubmit({
+		const dados = {
 			servico: servico.trim(),
 			categoria: categoria.trim() || "Sem categoria",
 			plano: plano.trim() || "—",
@@ -280,7 +328,10 @@ function NovoCustoModal({
 			cobranca,
 			status,
 			notas: notas.trim(),
-		});
+			dataInicio: dataInicio ? new Date(`${dataInicio}T12:00:00`) : null,
+		};
+		if (editando && custo) onUpdate(custo.id, dados);
+		else onCreate(dados);
 	};
 
 	return (
@@ -294,7 +345,7 @@ function NovoCustoModal({
 			>
 				<div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
 					<h2 className="text-lg font-semibold text-[var(--color-foreground)]">
-						Novo lançamento de custo
+						{editando ? "Editar custo" : "Novo lançamento de custo"}
 					</h2>
 					<button
 						type="button"
@@ -317,6 +368,7 @@ function NovoCustoModal({
 									required
 									placeholder="ex: Notion, Figma..."
 									className={inputClass}
+									autoFocus={!editando}
 								/>
 							</Field>
 
@@ -381,6 +433,15 @@ function NovoCustoModal({
 									<option value="cancelado">Cancelado</option>
 								</select>
 							</Field>
+
+							<Field label="Data de início">
+								<input
+									type="date"
+									value={dataInicio}
+									onChange={(e) => setDataInicio(e.target.value)}
+									className={inputClass}
+								/>
+							</Field>
 						</div>
 
 						<Field label="Notas">
@@ -394,22 +455,60 @@ function NovoCustoModal({
 						</Field>
 					</fieldset>
 
-					<div className="flex justify-end gap-3 border-t border-[var(--color-border)] pt-4">
-						<button
-							type="button"
-							onClick={onClose}
-							disabled={isSaving}
-							className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
-						>
-							Cancelar
-						</button>
-						<button
-							type="submit"
-							disabled={isSaving}
-							className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
-						>
-							{isSaving ? "Salvando..." : "Adicionar custo"}
-						</button>
+					<div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-4">
+						<div>
+							{editando && custo && (
+								<>
+									{!confirmarExclusao ? (
+										<button
+											type="button"
+											onClick={() => setConfirmarExclusao(true)}
+											disabled={isSaving}
+											className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--color-danger)] transition-colors hover:bg-[var(--color-danger)]/10 disabled:opacity-50"
+										>
+											<Trash2 className="h-4 w-4" />
+											Excluir
+										</button>
+									) : (
+										<div className="flex items-center gap-2">
+											<span className="text-xs text-[var(--color-muted)]">Confirma?</span>
+											<button
+												type="button"
+												onClick={() => setConfirmarExclusao(false)}
+												className="rounded-lg px-2 py-1 text-xs text-[var(--color-muted)] hover:bg-[var(--color-background)]"
+											>
+												Não
+											</button>
+											<button
+												type="button"
+												onClick={() => onDelete(custo.id)}
+												disabled={isSaving}
+												className="rounded-lg bg-[var(--color-danger)] px-2 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+											>
+												Sim, excluir
+											</button>
+										</div>
+									)}
+								</>
+							)}
+						</div>
+						<div className="flex gap-3">
+							<button
+								type="button"
+								onClick={onClose}
+								disabled={isSaving}
+								className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
+							>
+								Cancelar
+							</button>
+							<button
+								type="submit"
+								disabled={isSaving}
+								className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+							>
+								{isSaving ? "Salvando..." : editando ? "Salvar alterações" : "Adicionar custo"}
+							</button>
+						</div>
 					</div>
 				</form>
 			</div>

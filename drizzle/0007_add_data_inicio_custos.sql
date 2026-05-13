@@ -1,0 +1,1 @@
+ALTER TABLE custos ADD COLUMN data_inicio INTEGER;

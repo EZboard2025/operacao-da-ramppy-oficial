@@ -10,6 +10,7 @@ export const custos = sqliteTable("custos", {
 	cobranca: text("cobranca").notNull(),
 	status: text("status").notNull(),
 	notas: text("notas").notNull().default(""),
+	dataInicio: integer("data_inicio", { mode: "timestamp" }),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.default(sql`(unixepoch())`),

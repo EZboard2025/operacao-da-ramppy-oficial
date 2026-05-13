@@ -1,5 +1,6 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDB } from "@/db";
 import { custos as custosTable, type CustoRow } from "@/db/schema";
@@ -15,6 +16,7 @@ function rowToCusto(row: CustoRow): Custo {
 		cobranca: row.cobranca as CustoCobranca,
 		status: row.status as CustoStatus,
 		notas: row.notas,
+		dataInicio: row.dataInicio,
 	};
 }
 
@@ -36,7 +38,23 @@ export async function createCusto(input: Omit<Custo, "id">): Promise<Custo> {
 		cobranca: input.cobranca,
 		status: input.status,
 		notas: input.notas,
+		dataInicio: input.dataInicio,
 	});
 	revalidatePath("/financeiro");
 	return { ...input, id };
+}
+
+export async function updateCusto(
+	id: string,
+	campos: Partial<Omit<Custo, "id">>,
+): Promise<void> {
+	const db = await getDB();
+	await db.update(custosTable).set(campos).where(eq(custosTable.id, id));
+	revalidatePath("/financeiro");
+}
+
+export async function deleteCusto(id: string): Promise<void> {
+	const db = await getDB();
+	await db.delete(custosTable).where(eq(custosTable.id, id));
+	revalidatePath("/financeiro");
 }

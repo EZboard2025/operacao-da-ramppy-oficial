@@ -1,7 +1,45 @@
 import Link from "next/link";
-import { ListTodo, MessageSquare, Wallet, Banknote, ArrowRight } from "lucide-react";
+import { eq } from "drizzle-orm";
+import {
+	ListTodo,
+	MessageSquare,
+	Wallet,
+	Banknote,
+	ArrowRight,
+	TrendingUp,
+	TrendingDown,
+} from "lucide-react";
+import { getDB } from "@/db";
+import { custos as custosTable, vendas as vendasTable } from "@/db/schema";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+const formatBRL = (v: number) =>
+	new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+
+const formatPercent = (v: number) =>
+	new Intl.NumberFormat("pt-BR", {
+		style: "percent",
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 1,
+	}).format(v);
+
+async function getMargem() {
+	const db = await getDB();
+	const [vendasAtivas, custosAtivos] = await Promise.all([
+		db.select().from(vendasTable).where(eq(vendasTable.status, "ativa")),
+		db.select().from(custosTable).where(eq(custosTable.status, "ativo")),
+	]);
+	const receita = vendasAtivas.reduce((s, v) => s + v.valorMensalBRL, 0);
+	const custos = custosAtivos.reduce((s, c) => s + c.custoMensalBRL, 0);
+	const lucro = receita - custos;
+	const margemPct = receita > 0 ? lucro / receita : null;
+	return { receita, custos, lucro, margemPct };
+}
+
+export default async function Home() {
+	const { lucro, margemPct } = await getMargem();
+
 	return (
 		<div className="flex flex-col gap-8">
 			<header>
@@ -12,6 +50,10 @@ export default function Home() {
 					tarefas, feedback, vendas e custos
 				</p>
 			</header>
+
+			<section>
+				<MargemCard lucro={lucro} margemPct={margemPct} />
+			</section>
 
 			<section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 				<ModuleCard
@@ -39,6 +81,42 @@ export default function Home() {
 					icon={<Wallet className="h-6 w-6" />}
 				/>
 			</section>
+		</div>
+	);
+}
+
+function MargemCard({
+	lucro,
+	margemPct,
+}: {
+	lucro: number;
+	margemPct: number | null;
+}) {
+	const semReceita = margemPct === null;
+	const positivo = !semReceita && (margemPct ?? 0) >= 0;
+	const corClasse = semReceita
+		? "text-[var(--color-muted)]"
+		: positivo
+			? "text-[var(--color-success)]"
+			: "text-[var(--color-danger)]";
+	const bgClasse = semReceita
+		? "bg-[var(--color-background)]"
+		: positivo
+			? "bg-[var(--color-success)]/10"
+			: "bg-[var(--color-danger)]/10";
+	const Icon = semReceita ? TrendingUp : positivo ? TrendingUp : TrendingDown;
+
+	return (
+		<div className="max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm">
+			<div className="flex items-center justify-between">
+				<span className="text-sm font-medium text-[var(--color-muted)]">Margem de lucro</span>
+				<div className={`flex h-9 w-9 items-center justify-center rounded-lg ${bgClasse} ${corClasse}`}>
+					<Icon className="h-5 w-5" />
+				</div>
+			</div>
+			<div className={`mt-3 text-2xl font-bold tabular-nums ${corClasse}`}>
+				{semReceita ? "—" : `${formatPercent(margemPct ?? 0)} / ${formatBRL(lucro)}`}
+			</div>
 		</div>
 	);
 }
