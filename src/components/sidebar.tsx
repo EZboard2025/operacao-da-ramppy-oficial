@@ -10,8 +10,11 @@ import {
 	Banknote,
 	Settings,
 	LogOut,
+	LogIn,
 	TrendingUp,
 } from "lucide-react";
+import { sair } from "@/app/login/actions";
+import { PAPEL_COR, inicial, type Usuario } from "@/lib/usuarios";
 
 const navItems = [
 	{ href: "/", label: "Home", icon: LayoutDashboard },
@@ -21,7 +24,7 @@ const navItems = [
 	{ href: "/financeiro", label: "Custos", icon: Wallet },
 ];
 
-export function Sidebar() {
+export function Sidebar({ usuario }: { usuario: Usuario | null }) {
 	const pathname = usePathname();
 
 	return (
@@ -64,6 +67,7 @@ export function Sidebar() {
 			</nav>
 
 			<div className="border-t border-white/10 px-3 py-3">
+				{usuario && <UsuarioCard usuario={usuario} />}
 				<ul className="flex flex-col gap-1">
 					<li>
 						<Link
@@ -78,19 +82,54 @@ export function Sidebar() {
 						</Link>
 					</li>
 					<li>
-						<button
-							type="button"
-							className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium text-[var(--color-sidebar-text)] transition-colors hover:bg-[var(--color-sidebar-hover)]"
-							title="Sair"
-						>
-							<LogOut className="h-5 w-5 shrink-0" strokeWidth={2} />
-							<span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-								Sair
-							</span>
-						</button>
+						{usuario ? (
+							<form action={sair}>
+								<button
+									type="submit"
+									className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium text-[var(--color-sidebar-text)] transition-colors hover:bg-[var(--color-sidebar-hover)]"
+									title="Sair"
+								>
+									<LogOut className="h-5 w-5 shrink-0" strokeWidth={2} />
+									<span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+										Sair
+									</span>
+								</button>
+							</form>
+						) : (
+							<Link
+								href="/login"
+								className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium text-[var(--color-sidebar-text)] transition-colors hover:bg-[var(--color-sidebar-hover)]"
+								title="Entrar"
+							>
+								<LogIn className="h-5 w-5 shrink-0" strokeWidth={2} />
+								<span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+									Entrar
+								</span>
+							</Link>
+						)}
 					</li>
 				</ul>
 			</div>
 		</aside>
+	);
+}
+
+function UsuarioCard({ usuario }: { usuario: Usuario }) {
+	return (
+		<div className="mb-2 flex items-center gap-2 px-1 py-2">
+			<div
+				className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
+				style={{ backgroundColor: PAPEL_COR[usuario.papel] }}
+				title={usuario.nome}
+			>
+				{inicial(usuario.nome)}
+			</div>
+			<div className="min-w-0 flex-1 overflow-hidden opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+				<div className="truncate text-xs font-semibold text-white">{usuario.nome}</div>
+				<div className="truncate text-[10px] text-[var(--color-sidebar-text-muted)]">
+					{usuario.email}
+				</div>
+			</div>
+		</div>
 	);
 }

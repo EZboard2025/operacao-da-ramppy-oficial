@@ -78,3 +78,17 @@ export const vendas = sqliteTable("vendas", {
 
 export type VendaRow = typeof vendas.$inferSelect;
 export type VendaInsert = typeof vendas.$inferInsert;
+
+export const usuarios = sqliteTable("usuarios", {
+	id: text("id").primaryKey(),
+	nome: text("nome").notNull(),
+	email: text("email").notNull().unique(),
+	senhaHash: text("senha_hash").notNull(),
+	papel: text("papel").notNull().default("membro"),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+export type UsuarioRow = typeof usuarios.$inferSelect;
+export type UsuarioInsert = typeof usuarios.$inferInsert;
