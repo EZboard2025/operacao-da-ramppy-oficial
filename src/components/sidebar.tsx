@@ -12,6 +12,7 @@ import {
 	LogOut,
 	LogIn,
 	TrendingUp,
+	FolderOpen,
 } from "lucide-react";
 import { sair } from "@/app/login/actions";
 import { PAPEL_COR, inicial, type Usuario } from "@/lib/usuarios";
@@ -22,6 +23,7 @@ const navItems = [
 	{ href: "/feedback", label: "Feedback", icon: MessageSquare },
 	{ href: "/vendas", label: "Vendas", icon: Banknote },
 	{ href: "/financeiro", label: "Custos", icon: Wallet },
+	{ href: "/arquivos", label: "Arquivos", icon: FolderOpen },
 ];
 
 export function Sidebar({ usuario }: { usuario: Usuario | null }) {

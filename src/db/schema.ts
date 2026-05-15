@@ -93,3 +93,21 @@ export const usuarios = sqliteTable("usuarios", {
 
 export type UsuarioRow = typeof usuarios.$inferSelect;
 export type UsuarioInsert = typeof usuarios.$inferInsert;
+
+export const arquivos = sqliteTable("arquivos", {
+	id: text("id").primaryKey(),
+	nome: text("nome").notNull(),
+	categoria: text("categoria").notNull(),
+	descricao: text("descricao").notNull().default(""),
+	tamanhoBytes: integer("tamanho_bytes").notNull(),
+	tipoMime: text("tipo_mime").notNull(),
+	r2Key: text("r2_key").notNull(),
+	uploadedById: text("uploaded_by_id"),
+	uploadedByNome: text("uploaded_by_nome").notNull().default(""),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+export type ArquivoRow = typeof arquivos.$inferSelect;
+export type ArquivoInsert = typeof arquivos.$inferInsert;

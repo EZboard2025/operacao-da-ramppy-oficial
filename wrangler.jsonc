@@ -42,6 +42,12 @@
 			"database_name": "rampy-db",
 			"database_id": "0093a47b-eccc-44c3-8201-9538b3c64ad4"
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "ARQUIVOS",
+			"bucket_name": "rampy-arquivos"
+		}
 	]
 	/**
 	 * Smart Placement

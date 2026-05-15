@@ -8,6 +8,7 @@ import {
 	ArrowRight,
 	TrendingUp,
 	TrendingDown,
+	FolderOpen,
 } from "lucide-react";
 import { getDB } from "@/db";
 import { custos as custosTable, vendas as vendasTable } from "@/db/schema";
@@ -55,7 +56,7 @@ export default async function Home() {
 				<MargemCard lucro={lucro} margemPct={margemPct} />
 			</section>
 
-			<section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+			<section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
 				<ModuleCard
 					title="Tarefas da equipe"
 					description="Organize o trabalho da equipe em quadros, listas e responsáveis."
@@ -79,6 +80,12 @@ export default async function Home() {
 					description="Planilha de custos da operação - serviços"
 					href="/financeiro"
 					icon={<Wallet className="h-6 w-6" />}
+				/>
+				<ModuleCard
+					title="Arquivos"
+					description="Documentos importantes da Ramppy num só lugar."
+					href="/arquivos"
+					icon={<FolderOpen className="h-6 w-6" />}
 				/>
 			</section>
 		</div>
