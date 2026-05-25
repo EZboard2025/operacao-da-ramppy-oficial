@@ -2,11 +2,11 @@
 
 - **Status:** aceito
 - **Data:** 2026-05-15
-- **Decisor(es):** equipe Rampy
+- **Decisor(es):** equipe Ramppy
 
 ## Contexto
 
-Precisávamos hospedar a plataforma interna Rampy (Next.js 16). Os candidatos óbvios eram:
+Precisávamos hospedar a plataforma interna Ramppy (Next.js 16). Os candidatos óbvios eram:
 
 1. **Vercel** — padrão de fato pra Next.js, deploy zero-config
 2. **Cloudflare Workers** (via OpenNext) — runtime serverless edge, suporta Next 16

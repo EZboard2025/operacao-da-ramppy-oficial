@@ -29,7 +29,7 @@ export function LoginForm() {
 						<TrendingUp className="h-6 w-6 text-[var(--color-sidebar)]" strokeWidth={2.5} />
 					</div>
 					<div className="text-center">
-						<h1 className="text-2xl font-bold text-[var(--color-foreground)]">Rampy</h1>
+						<h1 className="text-2xl font-bold text-[var(--color-foreground)]">Ramppy</h1>
 						<p className="mt-1 text-sm text-[var(--color-muted)]">Entre com seu e-mail e senha</p>
 					</div>
 				</div>

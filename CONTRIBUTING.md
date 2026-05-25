@@ -1,6 +1,6 @@
-# Guia de trabalho dos devs — Rampy
+# Guia de trabalho dos devs — Ramppy
 
-Esse arquivo é o **manual do dia-a-dia** pros 2 devs que mantêm o Rampy. Lê uma vez, consulta
+Esse arquivo é o **manual do dia-a-dia** pros 2 devs que mantêm o Ramppy. Lê uma vez, consulta
 quando bater dúvida.
 
 > Se você é novo no projeto, comece pelo [`README.md`](README.md) (setup) e

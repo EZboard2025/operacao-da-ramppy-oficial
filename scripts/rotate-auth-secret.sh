@@ -131,7 +131,7 @@ proximos_passos() {
 
   if [[ "$rotacionou_prod" == "sim" ]]; then
     echo "  - AVISE A EQUIPE no Slack/Discord:"
-    echo "      \"Rotacionei o AUTH_SECRET. Voces vao precisar logar de novo na Rampy.\""
+    echo "      \"Rotacionei o AUTH_SECRET. Voces vao precisar logar de novo na Ramppy.\""
     echo "  - Confirme que o secret foi aplicado:  npx wrangler secret list"
     echo "  - Monitore por erros nos proximos minutos:  npx wrangler tail"
   fi

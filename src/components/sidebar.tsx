@@ -36,7 +36,7 @@ export function Sidebar({ usuario }: { usuario: Usuario | null }) {
 					<TrendingUp className="h-5 w-5 text-[var(--color-sidebar)]" strokeWidth={2.5} />
 				</div>
 				<span className="whitespace-nowrap text-xl font-bold tracking-tight opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-					Rampy
+					Ramppy
 				</span>
 			</div>
 

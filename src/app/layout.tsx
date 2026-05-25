@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Rampy — Plataforma Interna",
-	description: "Plataforma interna da Rampy para tarefas, feedback e financeiro.",
+	title: "Ramppy — Plataforma Interna",
+	description: "Plataforma interna da Ramppy para tarefas, feedback e financeiro.",
 };
 
 export default function RootLayout({

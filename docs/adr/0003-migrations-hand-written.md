@@ -2,7 +2,7 @@
 
 - **Status:** aceito
 - **Data:** 2026-05-25
-- **Decisor(es):** equipe Rampy
+- **Decisor(es):** equipe Ramppy
 
 ## Contexto
 

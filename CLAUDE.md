@@ -2,7 +2,7 @@
 
 Contexto pra Claude Code, Cursor e qualquer outro tool de IA que abrir esse repo.
 
-## O que é Rampy
+## O que é Ramppy
 
 Plataforma interna da Ramppy (~3 usuários: 1 owner não-técnico + 2 devs). Centraliza:
 

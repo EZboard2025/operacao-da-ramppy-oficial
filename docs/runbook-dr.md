@@ -1,4 +1,4 @@
-# Runbook de Disaster Recovery — Rampy
+# Runbook de Disaster Recovery — Ramppy
 
 Guia rápido pra recuperar o sistema quando algo dá muito errado. **Lê isso ANTES de precisar.**
 

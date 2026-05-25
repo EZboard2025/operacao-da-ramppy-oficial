@@ -1,4 +1,4 @@
-# Rampy
+# Ramppy
 
 Plataforma interna da Ramppy. Centraliza tarefas, feedback de clientes, vendas, custos e arquivos
 da operação num só lugar.

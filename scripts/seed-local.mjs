@@ -235,7 +235,7 @@ async function buildSQL() {
 			custo: 35.0,
 			cobranca: "mensal",
 			status: "ativo",
-			notas: "Roda esta plataforma (Rampy).",
+			notas: "Roda esta plataforma (Ramppy).",
 			inicio: diasAtras(180),
 		},
 		{
