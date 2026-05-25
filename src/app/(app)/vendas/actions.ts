@@ -26,9 +26,7 @@ export async function listVendas(): Promise<Venda[]> {
 	return rows.map(rowToVenda);
 }
 
-export async function createVenda(
-	input: Omit<Venda, "id" | "createdAt">,
-): Promise<Venda> {
+export async function createVenda(input: Omit<Venda, "id" | "createdAt">): Promise<Venda> {
 	const db = await getDB();
 	const id = crypto.randomUUID();
 	const createdAt = new Date();

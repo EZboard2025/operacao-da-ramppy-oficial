@@ -1,0 +1,20 @@
+# Arquivos críticos que sempre exigem revisão (todos os devs).
+# Sintaxe: <padrão> <@usuario1> <@usuario2>
+
+# Auth e sessão — qualquer mudança aqui = revisão obrigatória
+/src/lib/sessao.ts
+/src/lib/senha.ts
+/src/lib/auth-session.ts
+/src/app/login/
+/src/middleware.ts
+
+# Schema do banco — mudanças aqui têm risco de corromper dados
+/src/db/
+/drizzle/
+
+# Config do Cloudflare / deploy
+/wrangler.jsonc
+/.github/workflows/
+
+# Secrets template
+/.dev.vars.example

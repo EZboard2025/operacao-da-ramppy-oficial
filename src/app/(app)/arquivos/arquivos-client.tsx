@@ -26,13 +26,7 @@ import {
 } from "@/lib/arquivos";
 import { deleteArquivo, uploadArquivo } from "./actions";
 
-export function ArquivosClient({
-	arquivos,
-	ehAdmin,
-}: {
-	arquivos: Arquivo[];
-	ehAdmin: boolean;
-}) {
+export function ArquivosClient({ arquivos, ehAdmin }: { arquivos: Arquivo[]; ehAdmin: boolean }) {
 	const router = useRouter();
 	const [modalAberto, setModalAberto] = useState(false);
 	const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
@@ -213,7 +207,9 @@ export function ArquivosClient({
 													<button
 														type="button"
 														onClick={() => {
-															if (confirm(`Excluir "${a.nome}"? Essa ação não pode ser desfeita.`)) {
+															if (
+																confirm(`Excluir "${a.nome}"? Essa ação não pode ser desfeita.`)
+															) {
 																handleDelete(a.id);
 															}
 														}}
@@ -254,9 +250,7 @@ function EmptyState({ ehAdmin, onAdd }: { ehAdmin: boolean; onAdd: () => void })
 			<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
 				<FolderOpen className="h-6 w-6" />
 			</div>
-			<h2 className="text-lg font-semibold text-[var(--color-foreground)]">
-				Nenhum arquivo ainda
-			</h2>
+			<h2 className="text-lg font-semibold text-[var(--color-foreground)]">Nenhum arquivo ainda</h2>
 			<p className="max-w-sm text-sm text-[var(--color-muted)]">
 				{ehAdmin
 					? "Suba o primeiro arquivo importante da Ramppy. PDF, Word, Excel ou imagem, até 25MB."

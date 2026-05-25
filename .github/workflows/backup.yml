@@ -1,0 +1,39 @@
+name: Daily D1 backup
+
+on:
+  schedule:
+    # Todo dia às 06:00 UTC (03:00 BRT)
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: Export D1 to R2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Export D1
+        run: |
+          mkdir -p tmp
+          DATA=$(date +%Y-%m-%d)
+          npx wrangler d1 export rampy-db --remote --output="tmp/rampy-db-$DATA.sql"
+          gzip "tmp/rampy-db-$DATA.sql"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Upload to R2 backups bucket
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: r2 object put rampy-backups/d1/$(date +%Y/%m)/rampy-db-$(date +%Y-%m-%d).sql.gz --file=tmp/rampy-db-$(date +%Y-%m-%d).sql.gz

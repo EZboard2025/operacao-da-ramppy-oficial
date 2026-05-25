@@ -2,18 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-	Users,
-	Plus,
-	X,
-	Trash2,
-	Pencil,
-	Mail,
-	Key,
-	Eye,
-	EyeOff,
-	AlertCircle,
-} from "lucide-react";
+import { Users, Plus, X, Trash2, Pencil, Mail, Key, Eye, EyeOff, AlertCircle } from "lucide-react";
 import {
 	type Papel,
 	type Usuario,
@@ -36,12 +25,7 @@ export function ConfiguracoesClient({ usuarios }: { usuarios: Usuario[] }) {
 	const [isPending, startTransition] = useTransition();
 	const [erroGlobal, setErroGlobal] = useState<string | null>(null);
 
-	const handleCreate = (input: {
-		nome: string;
-		email: string;
-		senha: string;
-		papel: Papel;
-	}) => {
+	const handleCreate = (input: { nome: string; email: string; senha: string; papel: Papel }) => {
 		setErroGlobal(null);
 		startTransition(async () => {
 			const res = await createUsuario(input);
@@ -54,10 +38,7 @@ export function ConfiguracoesClient({ usuarios }: { usuarios: Usuario[] }) {
 		});
 	};
 
-	const handleUpdate = (
-		id: string,
-		campos: { nome?: string; email?: string; papel?: Papel },
-	) => {
+	const handleUpdate = (id: string, campos: { nome?: string; email?: string; papel?: Papel }) => {
 		setErroGlobal(null);
 		startTransition(async () => {
 			const res = await updateUsuario(id, campos);
@@ -189,9 +170,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 			<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
 				<Users className="h-6 w-6" />
 			</div>
-			<h2 className="text-lg font-semibold text-[var(--color-foreground)]">
-				Nenhuma conta criada
-			</h2>
+			<h2 className="text-lg font-semibold text-[var(--color-foreground)]">Nenhuma conta criada</h2>
 			<p className="max-w-sm text-sm text-[var(--color-muted)]">
 				Cadastre os e-mails e senhas das pessoas que vão acessar a plataforma.
 			</p>
@@ -449,11 +428,7 @@ function CriarOuEditarModal(props: {
 							disabled={props.isSaving}
 							className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
 						>
-							{props.isSaving
-								? "Salvando..."
-								: editando
-									? "Salvar alterações"
-									: "Criar conta"}
+							{props.isSaving ? "Salvando..." : editando ? "Salvar alterações" : "Criar conta"}
 						</button>
 					</div>
 				</div>
@@ -499,8 +474,9 @@ function ResetSenhaModal({
 		<ModalShell title="Redefinir senha" onClose={onClose} disabled={isSaving} maxWidth="max-w-md">
 			<form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-5">
 				<p className="text-sm text-[var(--color-muted)]">
-					Definir nova senha para <strong className="text-[var(--color-foreground)]">{usuario.nome}</strong>{" "}
-					({usuario.email}).
+					Definir nova senha para{" "}
+					<strong className="text-[var(--color-foreground)]">{usuario.nome}</strong> (
+					{usuario.email}).
 				</p>
 
 				<Field label="Nova senha" required hint="Mínimo de 8 caracteres">

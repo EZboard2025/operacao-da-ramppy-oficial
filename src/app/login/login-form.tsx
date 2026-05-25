@@ -40,9 +40,7 @@ export function LoginForm() {
 				>
 					<fieldset disabled={isPending} className="contents">
 						<label className="flex flex-col gap-1.5">
-							<span className="text-xs font-semibold text-[var(--color-foreground)]">
-								E-mail
-							</span>
+							<span className="text-xs font-semibold text-[var(--color-foreground)]">E-mail</span>
 							<input
 								type="email"
 								value={email}

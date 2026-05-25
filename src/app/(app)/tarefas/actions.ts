@@ -52,9 +52,7 @@ export async function listColunas(): Promise<Coluna[]> {
 	return rows.map(rowToColuna);
 }
 
-export async function createTarefa(
-	input: Omit<Tarefa, "id" | "createdAt">,
-): Promise<Tarefa> {
+export async function createTarefa(input: Omit<Tarefa, "id" | "createdAt">): Promise<Tarefa> {
 	const db = await getDB();
 	const id = crypto.randomUUID();
 	const createdAt = new Date();

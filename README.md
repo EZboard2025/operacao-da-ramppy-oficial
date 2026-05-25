@@ -1,47 +1,145 @@
-# OpenNext Starter
+# Rampy
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Plataforma interna da Ramppy. Centraliza tarefas, feedback de clientes, vendas, custos e arquivos
+da operação num só lugar.
 
-## Getting Started
+**Produção:** https://rampy.matheusmunizmoreia77.workers.dev
 
-Read the documentation at https://opennext.js.org/cloudflare.
+## Stack
 
-## Develop
+- **Next.js 16** (App Router) + React 19
+- **Cloudflare Workers** via [@opennextjs/cloudflare](https://opennext.js.org/cloudflare)
+- **D1** (SQLite) com Drizzle ORM
+- **R2** pra armazenamento de arquivos
+- **Tailwind v4**
+- Sessão custom (HMAC-SHA-256, cookie httpOnly) — não usa NextAuth
 
-Run the Next.js development server:
+## Setup (5 min)
 
 ```bash
+# 1. Clona e instala
+git clone git@github.com:EZboard2025/operacao-da-ramppy-oficial.git
+cd operacao-da-ramppy-oficial/rampy
+npm install
+
+# 2. Copia o template de variáveis e preenche
+cp .dev.vars.example .dev.vars
+# Edita .dev.vars e gera um AUTH_SECRET com: openssl rand -hex 32
+
+# 3. Cria o banco local + aplica todas as migrations
+npm run db:migrate:local
+
+# 4. (Opcional) Cria o primeiro usuário admin local — veja seção abaixo
+
+# 5. Sobe o servidor de dev
 npm run dev
-# or similar package manager command
+# Abre http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Comando                     | O que faz                                           |
+| --------------------------- | --------------------------------------------------- |
+| `npm run dev`               | Servidor de desenvolvimento Next                    |
+| `npm run build`             | Build de produção                                   |
+| `npm run preview`           | Build + roda local na runtime do Cloudflare Workers |
+| `npm run deploy`            | Build + deploy pra produção (Cloudflare Workers)    |
+| `npm run lint`              | ESLint                                              |
+| `npm run typecheck`         | Type check com TypeScript                           |
+| `npm run format`            | Formata tudo com Prettier                           |
+| `npm run test`              | Testes unitários (Vitest)                           |
+| `npm run test:e2e`          | Testes E2E (Playwright)                             |
+| `npm run db:migrate:local`  | Aplica migrations no D1 local                       |
+| `npm run db:migrate:remote` | Aplica migrations no D1 de produção                 |
+| `npm run db:list:local`     | Lista migrations pendentes (local)                  |
+| `npm run db:list:remote`    | Lista migrations pendentes (remoto)                 |
+| `npm run cf-typegen`        | Regenera os tipos do `cloudflare-env.d.ts`          |
 
-## Preview
-
-Preview the application locally on the Cloudflare runtime:
+## Fluxo de schema change
 
 ```bash
-npm run preview
-# or similar package manager command
+# 1. Edita src/db/schema.ts (adiciona/altera colunas)
+# 2. Escreve a migration SQL na mão em drizzle/000X_descricao.sql
+#    (Veja exemplos em drizzle/0008_create_arquivos.sql)
+# 3. Aplica local
+npm run db:migrate:local
+# 4. Testa
+# 5. Abre PR. Quando merge: aplica em prod
+npm run db:migrate:remote
 ```
+
+**Atenção:** numeração das migrations precisa ser sequencial. Antes de gerar uma nova, dá
+`git pull` na main pra pegar migrations recentes e evita conflito de numeração.
 
 ## Deploy
 
-Deploy the application to Cloudflare:
+Manual:
 
 ```bash
 npm run deploy
-# or similar package manager command
 ```
 
-## Learn More
+Automático (recomendado): merge na `main` dispara o workflow de `.github/workflows/deploy.yml`.
 
-To learn more about Next.js, take a look at the following resources:
+**Rollback:**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx wrangler deployments list
+npx wrangler rollback <deployment-id>
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Primeiro usuário admin (banco vazio)
+
+Pra criar o primeiro admin sem ter como entrar pela UI:
+
+```bash
+# 1. Gera o hash da senha (em ambiente Node)
+node -e "
+import('./src/lib/senha.js').then(async ({ hashSenha }) => {
+  console.log(await hashSenha('SUA_SENHA_AQUI'));
+})"
+
+# 2. Insere no banco
+npx wrangler d1 execute rampy-db --local --command=\\
+"INSERT INTO usuarios (id, nome, email, senha_hash, papel) VALUES \\
+('$(uuidgen | tr A-Z a-z)', 'Seu Nome', 'voce@empresa.com', '<hash gerado>', 'admin')"
+```
+
+(Em produção troca `--local` por `--remote`.)
+
+## Setup inicial do Cloudflare (uma vez)
+
+Pra deployar essa stack numa conta Cloudflare nova:
+
+```bash
+# 1. Login
+npx wrangler login
+
+# 2. Cria o banco D1
+npx wrangler d1 create rampy-db
+# (cola o database_id no wrangler.jsonc)
+
+# 3. Cria o bucket R2 (precisa ativar R2 no painel primeiro — exige cartão)
+npx wrangler r2 bucket create rampy-arquivos
+
+# 4. Aplica migrations no remoto
+npm run db:migrate:remote
+
+# 5. Sobe o secret de produção
+echo "$(openssl rand -hex 32)" | npx wrangler secret put AUTH_SECRET
+
+# 6. Deploy
+npm run deploy
+```
+
+Veja `docs/runbook-dr.md` pra runbook de incidentes.
+
+## Convenções
+
+- Tudo em **PT-BR** (variáveis, comentários, tabelas, colunas)
+- Server actions ficam em `src/lib/*.ts` (domínio) e em `src/app/(app)/<rota>/actions.ts`
+- Schema único em `src/db/schema.ts`
+- Commits no estilo "feat:", "fix:", "chore:" em PT-BR (ex: `feat(arquivos): adiciona busca`)
+- PRs <400 linhas. Maior que isso, justificar no template.
+
+Veja `CLAUDE.md` pra contexto que ajuda Claude Code / Cursor.

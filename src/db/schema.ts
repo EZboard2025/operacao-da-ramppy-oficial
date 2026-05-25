@@ -111,3 +111,20 @@ export const arquivos = sqliteTable("arquivos", {
 
 export type ArquivoRow = typeof arquivos.$inferSelect;
 export type ArquivoInsert = typeof arquivos.$inferInsert;
+
+export const auditoria = sqliteTable("auditoria", {
+	id: text("id").primaryKey(),
+	tipo: text("tipo").notNull(),
+	usuarioId: text("usuario_id"),
+	usuarioNome: text("usuario_nome").notNull().default(""),
+	alvoTipo: text("alvo_tipo").notNull().default(""),
+	alvoId: text("alvo_id").notNull().default(""),
+	metadata: text("metadata").notNull().default("{}"),
+	ip: text("ip").notNull().default(""),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+export type AuditoriaRow = typeof auditoria.$inferSelect;
+export type AuditoriaInsert = typeof auditoria.$inferInsert;

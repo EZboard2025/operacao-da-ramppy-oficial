@@ -24,9 +24,7 @@ export async function listFeedbacks(): Promise<Feedback[]> {
 	return rows.map(rowToFeedback);
 }
 
-export async function createFeedback(
-	input: Omit<Feedback, "id" | "createdAt">,
-): Promise<Feedback> {
+export async function createFeedback(input: Omit<Feedback, "id" | "createdAt">): Promise<Feedback> {
 	const db = await getDB();
 	const id = crypto.randomUUID();
 	const createdAt = new Date();

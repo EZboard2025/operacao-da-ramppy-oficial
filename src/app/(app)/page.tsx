@@ -39,7 +39,7 @@ async function getMargem() {
 }
 
 export default async function Home() {
-	const { lucro, margemPct } = await getMargem();
+	const { margemPct } = await getMargem();
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -47,13 +47,11 @@ export default async function Home() {
 				<h1 className="text-3xl font-bold text-[var(--color-foreground)]">
 					Visão geral da operação Ramppy
 				</h1>
-				<p className="mt-1 text-sm text-[var(--color-muted)]">
-					tarefas, feedback, vendas e custos
-				</p>
+				<p className="mt-1 text-sm text-[var(--color-muted)]">tarefas, feedback, vendas e custos</p>
 			</header>
 
 			<section>
-				<MargemCard lucro={lucro} margemPct={margemPct} />
+				<MargemCard margemPct={margemPct} />
 			</section>
 
 			<section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -92,13 +90,7 @@ export default async function Home() {
 	);
 }
 
-function MargemCard({
-	lucro,
-	margemPct,
-}: {
-	lucro: number;
-	margemPct: number | null;
-}) {
+function MargemCard({ margemPct }: { margemPct: number | null }) {
 	const semReceita = margemPct === null;
 	const positivo = !semReceita && (margemPct ?? 0) >= 0;
 	const corClasse = semReceita
@@ -117,12 +109,14 @@ function MargemCard({
 		<div className="max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm">
 			<div className="flex items-center justify-between">
 				<span className="text-sm font-medium text-[var(--color-muted)]">Margem de lucro</span>
-				<div className={`flex h-9 w-9 items-center justify-center rounded-lg ${bgClasse} ${corClasse}`}>
+				<div
+					className={`flex h-9 w-9 items-center justify-center rounded-lg ${bgClasse} ${corClasse}`}
+				>
 					<Icon className="h-5 w-5" />
 				</div>
 			</div>
 			<div className={`mt-3 text-2xl font-bold tabular-nums ${corClasse}`}>
-				{semReceita ? "—" : `${formatPercent(margemPct ?? 0)} / ${formatBRL(lucro)}`}
+				{semReceita ? "—" : formatPercent(margemPct ?? 0)}
 			</div>
 		</div>
 	);

@@ -44,10 +44,7 @@ export async function createCusto(input: Omit<Custo, "id">): Promise<Custo> {
 	return { ...input, id };
 }
 
-export async function updateCusto(
-	id: string,
-	campos: Partial<Omit<Custo, "id">>,
-): Promise<void> {
+export async function updateCusto(id: string, campos: Partial<Omit<Custo, "id">>): Promise<void> {
 	const db = await getDB();
 	await db.update(custosTable).set(campos).where(eq(custosTable.id, id));
 	revalidatePath("/financeiro");

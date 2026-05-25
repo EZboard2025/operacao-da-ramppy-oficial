@@ -1,36 +1,69 @@
 {
-  "name": "rampy",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
-  },
-  "dependencies": {
-    "@opennextjs/cloudflare": "^1.19.9",
-    "drizzle-orm": "^0.45.2",
-    "lucide-react": "^1.14.0",
-    "next": "16.2.6",
-    "react": "^19.1.7",
-    "react-dom": "^19.1.7"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.19.40",
-    "@types/react": "^19.1.7",
-    "@types/react-dom": "^19.1.7",
-    "drizzle-kit": "^0.31.10",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4",
-    "typescript": "^5.7.4",
-    "wrangler": "^4.90.0"
-  }
+	"name": "rampy",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "eslint .",
+		"typecheck": "tsc --noEmit",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+		"upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+		"predeploy": "git diff --quiet && git diff --cached --quiet || (echo '\\033[31m✘ Working tree sujo. Commita antes de deployar.\\033[0m' && exit 1)",
+		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
+		"db:migrate:local": "wrangler d1 migrations apply rampy-db --local",
+		"db:migrate:remote": "wrangler d1 migrations apply rampy-db --remote",
+		"db:list:local": "wrangler d1 migrations list rampy-db --local",
+		"db:list:remote": "wrangler d1 migrations list rampy-db --remote",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:e2e": "playwright test",
+		"prepare": "simple-git-hooks || true"
+	},
+	"simple-git-hooks": {
+		"pre-commit": "npx lint-staged"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{json,md,css,jsonc}": [
+			"prettier --write"
+		]
+	},
+	"dependencies": {
+		"@opennextjs/cloudflare": "^1.19.9",
+		"drizzle-orm": "^0.45.2",
+		"lucide-react": "^1.14.0",
+		"next": "16.2.6",
+		"react": "^19.1.7",
+		"react-dom": "^19.1.7"
+	},
+	"devDependencies": {
+		"@eslint/eslintrc": "^3",
+		"@next/eslint-plugin-next": "^16.2.6",
+		"@playwright/test": "^1.60.0",
+		"@tailwindcss/postcss": "^4",
+		"@types/node": "^20.19.40",
+		"@types/react": "^19.1.7",
+		"@types/react-dom": "^19.1.7",
+		"@vitest/coverage-v8": "^4.1.7",
+		"drizzle-kit": "^0.31.10",
+		"eslint": "^9",
+		"eslint-config-next": "16.2.6",
+		"eslint-config-prettier": "^10.1.8",
+		"lint-staged": "^17.0.5",
+		"prettier": "^3.8.3",
+		"simple-git-hooks": "^2.13.1",
+		"tailwindcss": "^4",
+		"typescript": "^5.7.4",
+		"typescript-eslint": "^8.60.0",
+		"vitest": "^4.1.7",
+		"wrangler": "^4.90.0"
+	}
 }

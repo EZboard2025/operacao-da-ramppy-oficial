@@ -47,13 +47,7 @@ const TODOS = "__todos__";
 type ModalTarefa = { tipo: "fechado" } | { tipo: "criar" } | { tipo: "editar"; tarefa: Tarefa };
 type ModalColuna = { tipo: "fechado" } | { tipo: "criar" } | { tipo: "editar"; coluna: Coluna };
 
-export function TarefasClient({
-	tarefas,
-	colunas,
-}: {
-	tarefas: Tarefa[];
-	colunas: Coluna[];
-}) {
+export function TarefasClient({ tarefas, colunas }: { tarefas: Tarefa[]; colunas: Coluna[] }) {
 	const [modalTarefa, setModalTarefa] = useState<ModalTarefa>({ tipo: "fechado" });
 	const [modalColuna, setModalColuna] = useState<ModalColuna>({ tipo: "fechado" });
 	const [filtroResponsavel, setFiltroResponsavel] = useState<Responsavel | typeof TODOS>(TODOS);
@@ -90,10 +84,11 @@ export function TarefasClient({
 		return map;
 	}, [tarefas]);
 
-	const wrap = (fn: () => Promise<unknown>) => () => startTransition(async () => {
-		await fn();
-		router.refresh();
-	});
+	const wrap = (fn: () => Promise<unknown>) => () =>
+		startTransition(async () => {
+			await fn();
+			router.refresh();
+		});
 
 	const handleCreateTarefa = (input: Omit<Tarefa, "id" | "createdAt">) => {
 		startTransition(async () => {
@@ -589,9 +584,7 @@ function TarefaModal({
 		tarefa?.status ?? colunas[0]?.id ?? "pendente",
 	);
 	const [prioridade, setPrioridade] = useState<Prioridade>(tarefa?.prioridade ?? "media");
-	const [prazo, setPrazo] = useState(
-		tarefa?.prazo ? tarefa.prazo.toISOString().slice(0, 10) : "",
-	);
+	const [prazo, setPrazo] = useState(tarefa?.prazo ? tarefa.prazo.toISOString().slice(0, 10) : "");
 	const [confirmarExclusao, setConfirmarExclusao] = useState(false);
 
 	useEffect(() => {
@@ -633,7 +626,11 @@ function TarefaModal({
 	};
 
 	return (
-		<ModalShell title={editando ? "Editar tarefa" : "Nova tarefa"} onClose={onClose} disabled={isSaving}>
+		<ModalShell
+			title={editando ? "Editar tarefa" : "Nova tarefa"}
+			onClose={onClose}
+			disabled={isSaving}
+		>
 			<form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-5">
 				<fieldset disabled={isSaving} className="contents">
 					<Field label="Título" required>

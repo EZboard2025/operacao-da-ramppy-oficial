@@ -53,10 +53,13 @@ export function formatData(date: Date): string {
 	}).format(date);
 }
 
-export function iconeDoTipo(mime: string): "imagem" | "pdf" | "planilha" | "documento" | "apresentacao" | "texto" | "outro" {
+export function iconeDoTipo(
+	mime: string,
+): "imagem" | "pdf" | "planilha" | "documento" | "apresentacao" | "texto" | "outro" {
 	if (mime.startsWith("image/")) return "imagem";
 	if (mime === "application/pdf") return "pdf";
-	if (mime.includes("spreadsheet") || mime.includes("excel") || mime === "text/csv") return "planilha";
+	if (mime.includes("spreadsheet") || mime.includes("excel") || mime === "text/csv")
+		return "planilha";
 	if (mime.includes("word") || mime === "application/msword") return "documento";
 	if (mime.includes("presentation") || mime.includes("powerpoint")) return "apresentacao";
 	if (mime.startsWith("text/")) return "texto";

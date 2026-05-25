@@ -11,44 +11,42 @@
 	"name": "rampy",
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2026-05-11",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
-	],
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 	"assets": {
 		"binding": "ASSETS",
-		"directory": ".open-next/assets"
+		"directory": ".open-next/assets",
 	},
 	"images": {
 		// Enable image optimization
 		// see https://opennext.js.org/cloudflare/howtos/image
-		"binding": "IMAGES"
+		"binding": "IMAGES",
 	},
 	"services": [
 		{
 			// Self-reference service binding, the service name must match the worker name
 			// see https://opennext.js.org/cloudflare/caching
 			"binding": "WORKER_SELF_REFERENCE",
-			"service": "rampy"
-		}
+			"service": "rampy",
+		},
 	],
 	"observability": {
-		"enabled": true
+		"enabled": true,
 	},
 	"upload_source_maps": true,
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "rampy-db",
-			"database_id": "0093a47b-eccc-44c3-8201-9538b3c64ad4"
-		}
+			"database_id": "0093a47b-eccc-44c3-8201-9538b3c64ad4",
+			"migrations_dir": "drizzle",
+		},
 	],
 	"r2_buckets": [
 		{
 			"binding": "ARQUIVOS",
-			"bucket_name": "rampy-arquivos"
-		}
-	]
+			"bucket_name": "rampy-arquivos",
+		},
+	],
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

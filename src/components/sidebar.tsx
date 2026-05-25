@@ -43,8 +43,7 @@ export function Sidebar({ usuario }: { usuario: Usuario | null }) {
 			<nav className="flex-1 px-3 py-2">
 				<ul className="flex flex-col gap-1">
 					{navItems.map((item) => {
-						const isActive =
-							item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+						const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 						const Icon = item.icon;
 						return (
 							<li key={item.href}>

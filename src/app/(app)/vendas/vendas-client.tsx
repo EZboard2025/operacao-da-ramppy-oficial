@@ -111,8 +111,8 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
 						Lista de vendas
 					</h2>
 					<span className="text-xs text-[var(--color-muted)]">
-						{vendas.length} {vendas.length === 1 ? "registro" : "registros"} · clique numa linha
-						pra editar
+						{vendas.length} {vendas.length === 1 ? "registro" : "registros"} · clique numa linha pra
+						editar
 					</span>
 				</div>
 

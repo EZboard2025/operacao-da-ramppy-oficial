@@ -1,0 +1,11 @@
+# Copia esse arquivo pra .dev.vars e preenche os valores reais.
+# .dev.vars é lido automaticamente pelo wrangler em dev.
+# NUNCA commita o .dev.vars (já está no .gitignore).
+
+# Ambiente do Next.js (use "development" em local)
+NEXTJS_ENV=development
+
+# Segredo HMAC pra assinar cookies de sessão.
+# Gera um novo com: openssl rand -hex 32
+# IMPORTANTE: use um segredo DIFERENTE do de produção.
+AUTH_SECRET="trocar-por-openssl-rand-hex-32"

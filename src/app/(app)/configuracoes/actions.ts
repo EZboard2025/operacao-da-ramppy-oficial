@@ -23,9 +23,7 @@ export async function listUsuarios(): Promise<Usuario[]> {
 	return rows.map(rowToUsuario);
 }
 
-export type CreateUsuarioResult =
-	| { ok: true; usuario: Usuario }
-	| { ok: false; erro: string };
+export type CreateUsuarioResult = { ok: true; usuario: Usuario } | { ok: false; erro: string };
 
 export async function createUsuario(input: {
 	nome: string;
@@ -106,10 +104,7 @@ export async function updateUsuario(
 	return { ok: true };
 }
 
-export async function resetSenha(
-	id: string,
-	novaSenha: string,
-): Promise<UpdateUsuarioResult> {
+export async function resetSenha(id: string, novaSenha: string): Promise<UpdateUsuarioResult> {
 	if (novaSenha.length < 8) {
 		return { ok: false, erro: "A senha precisa ter pelo menos 8 caracteres." };
 	}
