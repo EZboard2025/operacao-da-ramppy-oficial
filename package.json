@@ -19,13 +19,15 @@
 		"db:migrate:remote": "wrangler d1 migrations apply rampy-db --remote",
 		"db:list:local": "wrangler d1 migrations list rampy-db --local",
 		"db:list:remote": "wrangler d1 migrations list rampy-db --remote",
+		"db:seed:local": "node scripts/seed-local.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:e2e": "playwright test",
 		"prepare": "simple-git-hooks || true"
 	},
 	"simple-git-hooks": {
-		"pre-commit": "npx lint-staged"
+		"pre-commit": "npx lint-staged",
+		"commit-msg": "node scripts/check-commit-msg.mjs $1"
 	},
 	"lint-staged": {
 		"*.{ts,tsx}": [

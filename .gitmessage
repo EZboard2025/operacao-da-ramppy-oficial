@@ -1,0 +1,17 @@
+# <tipo>(<escopo>): <descrição curta em minúsculas, sem ponto final>
+#
+# Exemplos de tipos: feat, fix, chore, docs, test, style, perf, ci
+# Escopo é opcional (módulo afetado): arquivos, login, deps, ci, etc
+#
+# Linha em branco entre título e corpo.
+#
+# Corpo opcional: explica POR QUÊ a mudança foi feita, não O QUE
+# (o diff já mostra o quê). Quebra em ~72 colunas.
+#
+# Rodapé opcional: referência issues (Fixes #X) ou co-autoria.
+#
+# Exemplos:
+#   feat(arquivos): adiciona busca por categoria
+#   fix(login): trata caso de senha vazia sem crash
+#   chore(deps): bump next pra 16.2.7
+#   docs(readme): adiciona seção de rollback

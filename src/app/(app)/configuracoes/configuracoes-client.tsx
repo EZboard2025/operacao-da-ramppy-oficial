@@ -66,7 +66,11 @@ export function ConfiguracoesClient({ usuarios }: { usuarios: Usuario[] }) {
 
 	const handleDelete = (id: string) => {
 		startTransition(async () => {
-			await deleteUsuario(id);
+			const r = await deleteUsuario(id);
+			if (!r.ok) {
+				alert(r.erro);
+				return;
+			}
 			router.refresh();
 			setModal({ tipo: "fechado" });
 		});

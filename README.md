@@ -90,22 +90,20 @@ npx wrangler rollback <deployment-id>
 
 ## Primeiro usuário admin (banco vazio)
 
-Pra criar o primeiro admin sem ter como entrar pela UI:
-
 ```bash
-# 1. Gera o hash da senha (em ambiente Node)
-node -e "
-import('./src/lib/senha.js').then(async ({ hashSenha }) => {
-  console.log(await hashSenha('SUA_SENHA_AQUI'));
-})"
+# Local — pede senha sem echo
+node scripts/create-user.mjs --name "Seu Nome" --email "voce@empresa.com" --papel admin
 
-# 2. Insere no banco
-npx wrangler d1 execute rampy-db --local --command=\\
-"INSERT INTO usuarios (id, nome, email, senha_hash, papel) VALUES \\
-('$(uuidgen | tr A-Z a-z)', 'Seu Nome', 'voce@empresa.com', '<hash gerado>', 'admin')"
+# Produção
+node scripts/create-user.mjs --name "Seu Nome" --email "voce@empresa.com" --papel admin --remote
 ```
 
-(Em produção troca `--local` por `--remote`.)
+Ou popula o banco local com dados fake pra desenvolvimento:
+
+```bash
+npm run db:seed:local
+# Login: matheus@ramppy.com.br / admin123
+```
 
 ## Setup inicial do Cloudflare (uma vez)
 

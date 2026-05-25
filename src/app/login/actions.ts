@@ -33,7 +33,13 @@ export async function entrar(input: { email: string; senha: string }): Promise<E
 	const db = await getDB();
 	const rows = await db.select().from(usuariosTable).where(eq(usuariosTable.email, email)).limit(1);
 
-	const ok = rows.length > 0 && (await verificarSenha(senha, rows[0].senhaHash));
+	// Mesmo se o e-mail não existe, rodamos a verificação contra um hash dummy
+	// pra equalizar o tempo de resposta e evitar enumeração de e-mails via timing.
+	const DUMMY_HASH =
+		"pbkdf2$100000$AAAAAAAAAAAAAAAAAAAAAA==$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+	const hash = rows[0]?.senhaHash ?? DUMMY_HASH;
+	const senhaConfere = await verificarSenha(senha, hash);
+	const ok = rows.length > 0 && senhaConfere;
 	if (!ok) {
 		await registrarEvento({ tipo: "login.falha", metadata: { email }, ip });
 		return { ok: false, erro: "E-mail ou senha incorretos." };

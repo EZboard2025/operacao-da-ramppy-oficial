@@ -1,0 +1,43 @@
+name: Claude PR review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    name: AI review as second reviewer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    if: ${{ vars.ENABLE_CLAUDE_REVIEW == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Você está revisando um PR do projeto Rampy (Next.js 16 + Cloudflare Workers + D1 + R2).
+
+            Foca em:
+            - Bugs reais (null-safety, awaits faltando, race conditions)
+            - Vulnerabilidades de segurança (SQL injection, secrets vazando, auth bypass)
+            - Quebras óbvias de tipos TypeScript
+            - Inconsistências com convenções do CLAUDE.md (PT-BR, padrões existentes)
+            - Riscos em migrations / mudanças no schema do banco
+            - Mudanças em src/lib/sessao.ts, senha.ts, auth-session.ts ou middleware.ts (sempre apontar)
+
+            NÃO foca em:
+            - Estilo (Prettier cuida)
+            - Sugestões de refactor sem ganho claro
+            - Bikeshedding
+
+            Seja conciso. Se não tem nada importante pra apontar, diz "LGTM" e para.
+
+            Responda em português.
