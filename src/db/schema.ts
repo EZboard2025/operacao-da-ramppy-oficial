@@ -128,3 +128,23 @@ export const auditoria = sqliteTable("auditoria", {
 
 export type AuditoriaRow = typeof auditoria.$inferSelect;
 export type AuditoriaInsert = typeof auditoria.$inferInsert;
+
+export const ticketsDev = sqliteTable("tickets_dev", {
+	id: text("id").primaryKey(),
+	numero: integer("numero").notNull().unique(),
+	titulo: text("titulo").notNull(),
+	descricao: text("descricao").notNull().default(""),
+	sprint: integer("sprint").notNull().default(1),
+	prioridade: text("prioridade").notNull().default("P2"),
+	tamanho: text("tamanho").notNull().default("M"),
+	responsavel: text("responsavel").notNull().default("ambos"),
+	status: text("status").notNull().default("backlog"),
+	labels: text("labels", { mode: "json" }).$type<string[]>().notNull().default([]),
+	prUrl: text("pr_url").notNull().default(""),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+export type TicketDevRow = typeof ticketsDev.$inferSelect;
+export type TicketDevInsert = typeof ticketsDev.$inferInsert;

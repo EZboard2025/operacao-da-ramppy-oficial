@@ -6,6 +6,7 @@ Lista de tarefas pra os 2 devs, organizada por prioridade (P0/P1/P2) e tamanho (
 > respeitando WIP máximo de 2 por dev. Marca `[x]` quando entregar.
 
 **Convenção de tamanho:**
+
 - XS = <2h · S = meio dia · M = 1-2 dias · L = 3-5 dias
 
 ---
@@ -154,6 +155,7 @@ Aumentar a rede de proteção antes de adicionar features.
 ## Como tirar daqui pra fazer
 
 **Opção 1 — GitHub Issues (recomendado):**
+
 ```bash
 # Cria issue pra cada item (precisa de gh CLI: brew install gh && gh auth login)
 gh issue create --title "[#1] Rate limit no /login via Cloudflare Rate Limiting Rules" \
@@ -162,11 +164,13 @@ gh issue create --title "[#1] Rate limit no /login via Cloudflare Rate Limiting 
 ```
 
 **Opção 2 — Dogfood na própria plataforma:**
+
 - Vai em `/tarefas` na Ramppy
 - Cria coluna "Backlog dev"
 - Copia cada item
 
 **Opção 3 — Manual:**
+
 - Cada dev olha esse arquivo e marca `[x]` quando terminar
 - PR com `git checkout -b chore/marcar-task-N` + edit TASKS.md
 
