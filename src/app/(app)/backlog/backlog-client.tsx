@@ -22,16 +22,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-	Code2,
-	Plus,
-	X,
-	ExternalLink,
-	CheckCircle2,
-	Trash2,
-	Calendar,
-	GripVertical,
-} from "lucide-react";
+import { Code2, Plus, X, ExternalLink, CheckCircle2, Trash2, Calendar } from "lucide-react";
 import {
 	type Ticket,
 	type Prioridade,
@@ -424,65 +415,46 @@ function SortableCard({ ticket, onAbrir }: { ticket: Ticket; onAbrir: () => void
 	};
 
 	return (
-		<div ref={setNodeRef} style={style} {...attributes}>
-			<Card ticket={ticket} onAbrir={onAbrir} dragHandle={listeners} />
+		<div
+			ref={setNodeRef}
+			style={style}
+			{...attributes}
+			{...listeners}
+			onClick={onAbrir}
+			className="cursor-grab touch-none active:cursor-grabbing"
+		>
+			<Card ticket={ticket} />
 		</div>
 	);
 }
 
-function Card({
-	ticket,
-	onAbrir,
-	dragHandle,
-	arrastandoOverlay,
-}: {
-	ticket: Ticket;
-	onAbrir?: () => void;
-	dragHandle?: React.HTMLAttributes<HTMLDivElement>;
-	arrastandoOverlay?: boolean;
-}) {
+function Card({ ticket, arrastandoOverlay }: { ticket: Ticket; arrastandoOverlay?: boolean }) {
 	const corPrio = PRIORIDADE_COR[ticket.prioridade];
 	const corPrazo = ticket.prazo ? PRAZO_COR[statusPrazo(ticket.prazo)] : null;
 
 	return (
 		<div
-			className={`group flex flex-col gap-2 rounded-xl border bg-[var(--color-surface)] p-3 shadow-sm transition-all hover:border-[var(--color-brand)]/40 hover:shadow-md ${
+			className={`flex flex-col gap-2 rounded-xl border bg-[var(--color-surface)] p-3 shadow-sm transition-all hover:border-[var(--color-brand)]/40 hover:shadow-md ${
 				arrastandoOverlay
 					? "border-[var(--color-brand)] cursor-grabbing"
 					: "border-[var(--color-border)]"
 			}`}
 		>
-			<div className="flex items-start gap-2">
-				<div
-					{...dragHandle}
-					className="cursor-grab touch-none rounded p-0.5 text-[var(--color-muted)] opacity-0 transition-opacity hover:bg-[var(--color-background)] active:cursor-grabbing group-hover:opacity-100"
-					title="Arrastar"
+			<div className="flex flex-wrap items-center gap-1.5">
+				<span className="font-mono text-xs text-[var(--color-muted)]">#{ticket.numero}</span>
+				<span
+					className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold ${corPrio.bg} ${corPrio.text}`}
 				>
-					<GripVertical className="h-3.5 w-3.5" />
-				</div>
-
-				<button
-					type="button"
-					onClick={onAbrir}
-					disabled={arrastandoOverlay}
-					className="flex flex-1 flex-col items-start gap-1.5 text-left"
-				>
-					<div className="flex flex-wrap items-center gap-1.5">
-						<span className="font-mono text-xs text-[var(--color-muted)]">#{ticket.numero}</span>
-						<span
-							className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold ${corPrio.bg} ${corPrio.text}`}
-						>
-							{ticket.prioridade}
-						</span>
-						<span className="inline-flex items-center rounded-md bg-[var(--color-background)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-muted)] ring-1 ring-inset ring-[var(--color-border)]">
-							{ticket.tamanho}
-						</span>
-					</div>
-					<h3 className="text-sm font-semibold leading-snug text-[var(--color-foreground)]">
-						{ticket.titulo}
-					</h3>
-				</button>
+					{ticket.prioridade}
+				</span>
+				<span className="inline-flex items-center rounded-md bg-[var(--color-background)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-muted)] ring-1 ring-inset ring-[var(--color-border)]">
+					{ticket.tamanho}
+				</span>
 			</div>
+
+			<h3 className="text-sm font-semibold leading-snug text-[var(--color-foreground)]">
+				{ticket.titulo}
+			</h3>
 
 			{ticket.labels.length > 0 && (
 				<div className="flex flex-wrap gap-1">
@@ -590,6 +562,11 @@ function TicketModal({
 						<Info label="Status" valor={STATUS_LABEL[ticket.status]} />
 						<Info label="Sprint" valor={`Sprint ${ticket.sprint}`} />
 						<Info label="Responsável" valor={RESPONSAVEL_LABEL[ticket.responsavel]} />
+						<Info label="Tamanho" valor={TAMANHO_LABEL[ticket.tamanho]} />
+						<Info
+							label="Início"
+							valor={ticket.dataInicio ? ticket.dataInicio.toLocaleDateString("pt-BR") : "—"}
+						/>
 						<Info
 							label="Prazo"
 							valor={ticket.prazo ? ticket.prazo.toLocaleDateString("pt-BR") : "—"}
@@ -719,6 +696,9 @@ function EditorModal({
 	const [labels, setLabels] = useState<string>((ticket?.labels ?? []).join(", "));
 	const [prUrl, setPrUrl] = useState(ticket?.prUrl ?? "");
 	const [prazo, setPrazo] = useState(ticket?.prazo ? ticket.prazo.toISOString().slice(0, 10) : "");
+	const [dataInicio, setDataInicio] = useState(
+		ticket?.dataInicio ? ticket.dataInicio.toISOString().slice(0, 10) : "",
+	);
 
 	const submit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -727,6 +707,7 @@ function EditorModal({
 			.map((l) => l.trim())
 			.filter(Boolean);
 		const prazoDate = prazo ? new Date(`${prazo}T12:00:00`) : null;
+		const inicioDate = dataInicio ? new Date(`${dataInicio}T12:00:00`) : null;
 		const dados = {
 			titulo: titulo.trim(),
 			descricao: descricao.trim(),
@@ -736,6 +717,7 @@ function EditorModal({
 			responsavel,
 			labels: labelsArr,
 			prazo: prazoDate,
+			dataInicio: inicioDate,
 		};
 		if (!dados.titulo) return;
 		if (editando && ticket) onUpdate(ticket.id, { ...dados, prUrl });
@@ -828,7 +810,15 @@ function EditorModal({
 						</Field>
 					</div>
 
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<Field label="Data de início (opcional)">
+							<input
+								type="date"
+								value={dataInicio}
+								onChange={(e) => setDataInicio(e.target.value)}
+								className={inputClass}
+							/>
+						</Field>
 						<Field label="Prazo (opcional)">
 							<input
 								type="date"
@@ -837,12 +827,12 @@ function EditorModal({
 								className={inputClass}
 							/>
 						</Field>
-						<Field label="Labels (separadas por vírgula)">
+						<Field label="Labels (vírgula)">
 							<input
 								type="text"
 								value={labels}
 								onChange={(e) => setLabels(e.target.value)}
-								placeholder="security, test, refactor..."
+								placeholder="security, test..."
 								className={inputClass}
 							/>
 						</Field>

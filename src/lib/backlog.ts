@@ -18,6 +18,7 @@ export type Ticket = {
 	labels: string[];
 	prUrl: string;
 	prazo: Date | null;
+	dataInicio: Date | null;
 	ordem: number;
 	createdAt: Date;
 };

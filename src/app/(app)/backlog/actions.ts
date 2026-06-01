@@ -21,6 +21,7 @@ function rowToTicket(row: TicketDevRow): Ticket {
 		labels: row.labels,
 		prUrl: row.prUrl,
 		prazo: row.prazo,
+		dataInicio: row.dataInicio,
 		ordem: row.ordem,
 		createdAt: row.createdAt,
 	};
@@ -89,6 +90,7 @@ export async function updateTicket(
 			| "prUrl"
 			| "labels"
 			| "prazo"
+			| "dataInicio"
 		>
 	>,
 ): Promise<UpdateResult> {
@@ -110,6 +112,7 @@ export async function createTicket(input: {
 	responsavel: Responsavel;
 	labels: string[];
 	prazo: Date | null;
+	dataInicio: Date | null;
 }): Promise<UpdateResult> {
 	const usuario = await getSessaoAtual();
 	if (!usuario) return { ok: false, erro: "Você precisa estar logado." };
@@ -141,6 +144,7 @@ export async function createTicket(input: {
 		status: "backlog",
 		prUrl: "",
 		prazo: input.prazo,
+		dataInicio: input.dataInicio,
 		ordem: novaOrdem,
 	});
 	revalidatePath("/backlog");

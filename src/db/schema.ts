@@ -142,6 +142,7 @@ export const ticketsDev = sqliteTable("tickets_dev", {
 	labels: text("labels", { mode: "json" }).$type<string[]>().notNull().default([]),
 	prUrl: text("pr_url").notNull().default(""),
 	prazo: integer("prazo", { mode: "timestamp" }),
+	dataInicio: integer("data_inicio", { mode: "timestamp" }),
 	ordem: real("ordem").notNull().default(0),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
