@@ -17,6 +17,8 @@ export type Ticket = {
 	status: StatusTicket;
 	labels: string[];
 	prUrl: string;
+	prazo: Date | null;
+	ordem: number;
 	createdAt: Date;
 };
 
@@ -78,3 +80,53 @@ export const formatData = (date: Date) =>
 		day: "2-digit",
 		month: "short",
 	}).format(date);
+
+export type StatusPrazo = "atrasado" | "hoje" | "proximo" | "futuro";
+
+export function statusPrazo(prazo: Date): StatusPrazo {
+	const agora = new Date();
+	const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+	const data = new Date(prazo.getFullYear(), prazo.getMonth(), prazo.getDate());
+	const diff = (data.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24);
+	if (diff < 0) return "atrasado";
+	if (diff === 0) return "hoje";
+	if (diff <= 2) return "proximo";
+	return "futuro";
+}
+
+export const PRAZO_COR: Record<StatusPrazo, { bg: string; text: string; label: string }> = {
+	atrasado: {
+		bg: "bg-[var(--color-danger)]/10",
+		text: "text-[var(--color-danger)]",
+		label: "Atrasado",
+	},
+	hoje: {
+		bg: "bg-[var(--color-warning)]/10",
+		text: "text-[var(--color-warning)]",
+		label: "Hoje",
+	},
+	proximo: {
+		bg: "bg-[var(--color-warning)]/10",
+		text: "text-[var(--color-warning)]",
+		label: "Em breve",
+	},
+	futuro: {
+		bg: "bg-[var(--color-background)]",
+		text: "text-[var(--color-muted)]",
+		label: "Futuro",
+	},
+};
+
+export function formatPrazo(prazo: Date): string {
+	const agora = new Date();
+	const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+	const data = new Date(prazo.getFullYear(), prazo.getMonth(), prazo.getDate());
+	const diffDias = Math.round((data.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+
+	if (diffDias === 0) return "Hoje";
+	if (diffDias === 1) return "Amanhã";
+	if (diffDias === -1) return "Ontem";
+	if (diffDias < 0) return `${Math.abs(diffDias)} dias atrás`;
+	if (diffDias <= 7) return `Em ${diffDias} dias`;
+	return formatData(prazo);
+}

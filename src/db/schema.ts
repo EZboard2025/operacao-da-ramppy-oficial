@@ -141,6 +141,8 @@ export const ticketsDev = sqliteTable("tickets_dev", {
 	status: text("status").notNull().default("backlog"),
 	labels: text("labels", { mode: "json" }).$type<string[]>().notNull().default([]),
 	prUrl: text("pr_url").notNull().default(""),
+	prazo: integer("prazo", { mode: "timestamp" }),
+	ordem: real("ordem").notNull().default(0),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.default(sql`(unixepoch())`),
