@@ -9,6 +9,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "rampy",
+	"account_id": "1a9d83475b3c21c2c8216bbcdca89654",
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2026-05-11",
 	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
