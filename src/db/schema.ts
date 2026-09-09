@@ -42,6 +42,7 @@ export const tarefas = sqliteTable("tarefas", {
 	status: text("status").notNull(),
 	prioridade: text("prioridade").notNull(),
 	prazo: integer("prazo", { mode: "timestamp" }),
+	ordem: real("ordem").notNull().default(0),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.default(sql`(unixepoch())`),

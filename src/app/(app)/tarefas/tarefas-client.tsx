@@ -1,7 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import {
+	DndContext,
+	DragOverlay,
+	KeyboardSensor,
+	PointerSensor,
+	closestCorners,
+	pointerWithin,
+	useDroppable,
+	useSensor,
+	useSensors,
+	type CollisionDetection,
+	type DragEndEvent,
+	type DragOverEvent,
+	type DragStartEvent,
+} from "@dnd-kit/core";
+import {
+	SortableContext,
+	arrayMove,
+	sortableKeyboardCoordinates,
+	useSortable,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
 	ListTodo,
 	Plus,
@@ -22,6 +45,7 @@ import {
 	type Responsavel,
 	type StatusTarefa,
 	type Tarefa,
+	type TarefaInput,
 	CORES_COLUNA,
 	COR_COLUNA_HEX,
 	PRIORIDADE_LABEL,
@@ -37,12 +61,47 @@ import {
 	deleteColuna,
 	deleteTarefa,
 	moveColuna,
+	reorderTarefas,
 	updateColuna,
 	updateStatusTarefa,
 	updateTarefa,
 } from "./actions";
 
 const TODOS = "__todos__";
+
+// Distância que o ponteiro precisa percorrer pra virar arraste em vez de clique.
+// Usada nos dois lados: no sensor do dnd-kit e no guard de clique do card.
+const ARRASTE_MIN_PX = 4;
+
+// O grid estica toda coluna até a altura da mais alta, então uma coluna vazia
+// vira um retângulo enorme. `closestCorners` soma a distância dos 4 cantos e
+// esse retângulo perde pros cards pequenos da coluna vizinha — o card era
+// desviado pra coluna errada. `pointerWithin` decide pelo cursor, que é o que o
+// usuário enxerga; `closestCorners` só entra quando o cursor está num vão.
+const detectarColisao: CollisionDetection = (args) => {
+	const sobCursor = pointerWithin(args);
+	return sobCursor.length > 0 ? sobCursor : closestCorners(args);
+};
+
+type TarefasPorColuna = Record<string, Tarefa[]>;
+
+function agruparPorColuna(tarefas: Tarefa[], colunas: Coluna[]): TarefasPorColuna {
+	const map: TarefasPorColuna = {};
+	for (const c of colunas) map[c.id] = [];
+	// "Soltas" — tarefa cujo status não bate com nenhuma coluna existente (defensivo)
+	const soltas: Tarefa[] = [];
+	for (const t of tarefas) {
+		if (map[t.status]) map[t.status].push(t);
+		else soltas.push(t);
+	}
+	if (soltas.length > 0 && colunas.length > 0) {
+		map[colunas[0].id] = [...map[colunas[0].id], ...soltas];
+	}
+	for (const c of colunas) {
+		map[c.id].sort((a, b) => a.ordem - b.ordem || b.createdAt.getTime() - a.createdAt.getTime());
+	}
+	return map;
+}
 
 type ModalTarefa = { tipo: "fechado" } | { tipo: "criar" } | { tipo: "editar"; tarefa: Tarefa };
 type ModalColuna = { tipo: "fechado" } | { tipo: "criar" } | { tipo: "editar"; coluna: Coluna };
@@ -54,25 +113,113 @@ export function TarefasClient({ tarefas, colunas }: { tarefas: Tarefa[]; colunas
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
 
-	const tarefasVisiveis = useMemo(() => {
-		if (filtroResponsavel === TODOS) return tarefas;
-		return tarefas.filter((t) => t.responsaveis.includes(filtroResponsavel));
-	}, [tarefas, filtroResponsavel]);
+	// Cópia local do board pra o drag ser instantâneo; o servidor confirma depois.
+	// Guarda TODAS as tarefas (o filtro de responsável é aplicado só na renderização),
+	// senão reordenar com filtro ativo perderia a posição das tarefas escondidas.
+	const [estado, setEstado] = useState<TarefasPorColuna>(() => agruparPorColuna(tarefas, colunas));
+	const [arrastando, setArrastando] = useState<Tarefa | null>(null);
 
-	const tarefasPorColuna = useMemo(() => {
-		const map: Record<string, Tarefa[]> = {};
-		for (const c of colunas) map[c.id] = [];
-		// "Soltas" — tarefa cujo status não bate com nenhuma coluna existente (defensivo)
-		const soltas: Tarefa[] = [];
-		for (const t of tarefasVisiveis) {
-			if (map[t.status]) map[t.status].push(t);
-			else soltas.push(t);
+	useEffect(() => {
+		setEstado(agruparPorColuna(tarefas, colunas));
+	}, [tarefas, colunas]);
+
+	const sensors = useSensors(
+		useSensor(PointerSensor, { activationConstraint: { distance: ARRASTE_MIN_PX } }),
+		useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+	);
+
+	const passaFiltro = (t: Tarefa) =>
+		filtroResponsavel === TODOS || t.responsaveis.includes(filtroResponsavel);
+
+	// Aceita tanto o id de uma coluna (soltou no vazio) quanto o de uma tarefa.
+	const acharColunaDeId = (id: string): string | null => {
+		if (colunas.some((c) => c.id === id)) return id;
+		for (const c of colunas) {
+			if ((estado[c.id] ?? []).some((t) => t.id === id)) return c.id;
 		}
-		if (soltas.length > 0 && colunas.length > 0) {
-			map[colunas[0].id] = [...map[colunas[0].id], ...soltas];
+		return null;
+	};
+
+	const handleDragStart = (e: DragStartEvent) => {
+		const id = e.active.id as string;
+		for (const c of colunas) {
+			const t = (estado[c.id] ?? []).find((x) => x.id === id);
+			if (t) {
+				setArrastando(t);
+				return;
+			}
 		}
-		return map;
-	}, [tarefasVisiveis, colunas]);
+	};
+
+	// Move entre colunas ainda durante o arraste, pra o card acompanhar o cursor.
+	const handleDragOver = (e: DragOverEvent) => {
+		const { active, over } = e;
+		if (!over) return;
+		const activeId = active.id as string;
+		const overId = over.id as string;
+
+		const origem = acharColunaDeId(activeId);
+		const destino = acharColunaDeId(overId);
+		if (!origem || !destino || origem === destino) return;
+
+		setEstado((prev) => {
+			const tarefa = (prev[origem] ?? []).find((t) => t.id === activeId);
+			if (!tarefa) return prev;
+			const idxOver = (prev[destino] ?? []).findIndex((t) => t.id === overId);
+			const insertAt = idxOver >= 0 ? idxOver : (prev[destino] ?? []).length;
+			return {
+				...prev,
+				[origem]: (prev[origem] ?? []).filter((t) => t.id !== activeId),
+				[destino]: [
+					...(prev[destino] ?? []).slice(0, insertAt),
+					{ ...tarefa, status: destino },
+					...(prev[destino] ?? []).slice(insertAt),
+				],
+			};
+		});
+	};
+
+	const handleDragEnd = (e: DragEndEvent) => {
+		setArrastando(null);
+		const { active, over } = e;
+		if (!over) return;
+		const activeId = active.id as string;
+		const overId = over.id as string;
+
+		const colunaAtual = acharColunaDeId(activeId);
+		if (!colunaAtual) return;
+
+		// Reordenação dentro da própria coluna
+		const lista = estado[colunaAtual] ?? [];
+		const oldIdx = lista.findIndex((t) => t.id === activeId);
+		const newIdx = lista.findIndex((t) => t.id === overId);
+
+		let listaFinal = lista;
+		if (oldIdx >= 0 && newIdx >= 0 && oldIdx !== newIdx) {
+			listaFinal = arrayMove(lista, oldIdx, newIdx);
+			setEstado((prev) => ({ ...prev, [colunaAtual]: listaFinal }));
+		}
+
+		// Persiste só o que saiu do lugar em relação ao que veio do servidor.
+		const updates: Array<{ id: string; status: StatusTarefa; ordem: number }> = [];
+		for (const c of colunas) {
+			const coluna = c.id === colunaAtual ? listaFinal : (estado[c.id] ?? []);
+			coluna.forEach((t, idx) => {
+				const novaOrdem = (idx + 1) * 1000;
+				const original = tarefas.find((x) => x.id === t.id);
+				if (!original || original.status !== c.id || original.ordem !== novaOrdem) {
+					updates.push({ id: t.id, status: c.id, ordem: novaOrdem });
+				}
+			});
+		}
+
+		if (updates.length > 0) {
+			startTransition(async () => {
+				await reorderTarefas(updates);
+				router.refresh();
+			});
+		}
+	};
 
 	const contagemPorResponsavel = useMemo(() => {
 		const map = new Map<Responsavel, number>();
@@ -90,7 +237,7 @@ export function TarefasClient({ tarefas, colunas }: { tarefas: Tarefa[]; colunas
 			router.refresh();
 		});
 
-	const handleCreateTarefa = (input: Omit<Tarefa, "id" | "createdAt">) => {
+	const handleCreateTarefa = (input: TarefaInput) => {
 		startTransition(async () => {
 			await createTarefa(input);
 			router.refresh();
@@ -98,7 +245,7 @@ export function TarefasClient({ tarefas, colunas }: { tarefas: Tarefa[]; colunas
 		});
 	};
 
-	const handleUpdateTarefa = (id: string, campos: Partial<Omit<Tarefa, "id" | "createdAt">>) => {
+	const handleUpdateTarefa = (id: string, campos: Partial<TarefaInput>) => {
 		startTransition(async () => {
 			await updateTarefa(id, campos);
 			router.refresh();
@@ -187,23 +334,43 @@ export function TarefasClient({ tarefas, colunas }: { tarefas: Tarefa[]; colunas
 						onChange={setFiltroResponsavel}
 					/>
 
-					<div className="grid auto-rows-min grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-						{colunas.map((coluna, idx) => (
-							<KanbanColumn
-								key={coluna.id}
-								coluna={coluna}
-								podeMoverEsquerda={idx > 0}
-								podeMoverDireita={idx < colunas.length - 1}
-								tarefas={tarefasPorColuna[coluna.id] ?? []}
-								statusList={colunas}
-								onStatusChange={handleStatusChange}
-								onEdit={(tarefa) => setModalTarefa({ tipo: "editar", tarefa })}
-								onEditColuna={() => setModalColuna({ tipo: "editar", coluna })}
-								onMoveColuna={handleMoveColuna}
-							/>
-						))}
-						<NovaColunaPlaceholder onClick={() => setModalColuna({ tipo: "criar" })} />
-					</div>
+					<DndContext
+						// id fixo: sem ele o dnd-kit numera o aria-describedby com um
+						// contador que diverge entre server e client (hydration mismatch).
+						id="board-tarefas"
+						sensors={sensors}
+						collisionDetection={detectarColisao}
+						onDragStart={handleDragStart}
+						onDragOver={handleDragOver}
+						onDragEnd={handleDragEnd}
+						onDragCancel={() => setArrastando(null)}
+					>
+						<div className="grid auto-rows-min grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+							{colunas.map((coluna, idx) => (
+								<KanbanColumn
+									key={coluna.id}
+									coluna={coluna}
+									podeMoverEsquerda={idx > 0}
+									podeMoverDireita={idx < colunas.length - 1}
+									tarefas={(estado[coluna.id] ?? []).filter(passaFiltro)}
+									statusList={colunas}
+									onStatusChange={handleStatusChange}
+									onEdit={(tarefa) => setModalTarefa({ tipo: "editar", tarefa })}
+									onEditColuna={() => setModalColuna({ tipo: "editar", coluna })}
+									onMoveColuna={handleMoveColuna}
+								/>
+							))}
+							<NovaColunaPlaceholder onClick={() => setModalColuna({ tipo: "criar" })} />
+						</div>
+
+						<DragOverlay>
+							{arrastando ? (
+								<div className="rotate-2 cursor-grabbing opacity-90">
+									<CardTarefa tarefa={arrastando} arrastandoOverlay />
+								</div>
+							) : null}
+						</DragOverlay>
+					</DndContext>
 				</>
 			)}
 
@@ -352,9 +519,18 @@ function KanbanColumn({
 	onMoveColuna: (id: string, direcao: "esquerda" | "direita") => void;
 }) {
 	const corHex = COR_COLUNA_HEX[coluna.cor];
+	// Alvo de drop da coluna inteira — cobre o caso de soltar no espaço vazio.
+	const { setNodeRef, isOver } = useDroppable({ id: coluna.id, data: { tipo: "coluna" } });
 
 	return (
-		<div className="group/coluna flex flex-col gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] p-3">
+		<div
+			ref={setNodeRef}
+			className={`group/coluna flex flex-col gap-3 rounded-2xl border p-3 transition-colors ${
+				isOver
+					? "border-[var(--color-brand)]/40 bg-[var(--color-brand)]/5"
+					: "border-[var(--color-border)] bg-[var(--color-background)]"
+			}`}
+		>
 			<div className="flex items-center justify-between gap-1 px-2 pt-1">
 				<div className="flex min-w-0 items-center gap-2">
 					<div className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: corHex }} />
@@ -399,23 +575,25 @@ function KanbanColumn({
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-2">
-				{tarefas.length === 0 ? (
-					<div className="rounded-lg border border-dashed border-[var(--color-border)] px-3 py-6 text-center text-xs text-[var(--color-muted)]">
-						Sem tarefas
-					</div>
-				) : (
-					tarefas.map((t) => (
-						<TarefaCard
-							key={t.id}
-							tarefa={t}
-							statusList={statusList}
-							onStatusChange={onStatusChange}
-							onEdit={() => onEdit(t)}
-						/>
-					))
-				)}
-			</div>
+			<SortableContext items={tarefas.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+				<div className="flex min-h-[64px] flex-col gap-2">
+					{tarefas.length === 0 ? (
+						<div className="rounded-lg border border-dashed border-[var(--color-border)] px-3 py-6 text-center text-xs text-[var(--color-muted)]">
+							Solte tarefas aqui
+						</div>
+					) : (
+						tarefas.map((t) => (
+							<TarefaCard
+								key={t.id}
+								tarefa={t}
+								statusList={statusList}
+								onStatusChange={onStatusChange}
+								onEdit={() => onEdit(t)}
+							/>
+						))
+					)}
+				</div>
+			</SortableContext>
 		</div>
 	);
 }
@@ -444,13 +622,73 @@ function TarefaCard({
 	onStatusChange: (id: string, status: StatusTarefa) => void;
 	onEdit: () => void;
 }) {
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+		id: tarefa.id,
+		data: { tipo: "tarefa", status: tarefa.status },
+	});
+	const inicioPonteiro = useRef<{ x: number; y: number } | null>(null);
+
 	return (
-		<article className="group flex flex-col gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 shadow-sm transition-colors hover:border-[var(--color-brand)]/40">
+		<div
+			ref={setNodeRef}
+			style={{
+				transform: CSS.Transform.toString(transform),
+				transition,
+				opacity: isDragging ? 0.35 : 1,
+			}}
+			{...attributes}
+			{...listeners}
+			onPointerDownCapture={(e) => {
+				inicioPonteiro.current = { x: e.clientX, y: e.clientY };
+			}}
+			onClickCapture={(e) => {
+				const inicio = inicioPonteiro.current;
+				inicioPonteiro.current = null;
+				if (!inicio) return;
+				// Se o ponteiro andou, foi arraste: engole o clique pra não abrir o modal.
+				if (Math.hypot(e.clientX - inicio.x, e.clientY - inicio.y) > ARRASTE_MIN_PX) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			}}
+			className="cursor-grab touch-none active:cursor-grabbing"
+		>
+			<CardTarefa
+				tarefa={tarefa}
+				statusList={statusList}
+				onStatusChange={onStatusChange}
+				onEdit={onEdit}
+			/>
+		</div>
+	);
+}
+
+function CardTarefa({
+	tarefa,
+	statusList,
+	onStatusChange,
+	onEdit,
+	arrastandoOverlay,
+}: {
+	tarefa: Tarefa;
+	statusList?: Coluna[];
+	onStatusChange?: (id: string, status: StatusTarefa) => void;
+	onEdit?: () => void;
+	arrastandoOverlay?: boolean;
+}) {
+	return (
+		<article
+			className={`group flex flex-col gap-2 rounded-xl border bg-[var(--color-surface)] p-3 shadow-sm transition-colors ${
+				arrastandoOverlay
+					? "border-[var(--color-brand)] shadow-md"
+					: "border-[var(--color-border)] hover:border-[var(--color-brand)]/40"
+			}`}
+		>
 			<button
 				type="button"
 				onClick={onEdit}
 				className="-m-1 flex flex-col gap-2 rounded-lg p-1 text-left transition-colors hover:bg-[var(--color-background)]/60"
-				title="Clique para editar"
+				title="Clique para editar, arraste para mover"
 			>
 				<div className="flex items-start justify-between gap-2">
 					<h3 className="text-sm font-semibold leading-snug text-[var(--color-foreground)]">
@@ -477,18 +715,22 @@ function TarefaCard({
 				</div>
 			</button>
 
-			<select
-				value={tarefa.status}
-				onChange={(e) => onStatusChange(tarefa.id, e.target.value)}
-				onClick={(e) => e.stopPropagation()}
-				className="cursor-pointer rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1 text-xs text-[var(--color-muted)] transition-colors hover:border-[var(--color-brand)]/40 focus:border-[var(--color-brand)] focus:outline-none"
-			>
-				{statusList.map((s) => (
-					<option key={s.id} value={s.id}>
-						Mover para: {s.label}
-					</option>
-				))}
-			</select>
+			{statusList && onStatusChange && (
+				<select
+					value={tarefa.status}
+					onChange={(e) => onStatusChange(tarefa.id, e.target.value)}
+					onClick={(e) => e.stopPropagation()}
+					// Sem isso o dnd-kit sequestra o pointerdown e o select não abre.
+					onPointerDown={(e) => e.stopPropagation()}
+					className="cursor-pointer rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1 text-xs text-[var(--color-muted)] transition-colors hover:border-[var(--color-brand)]/40 focus:border-[var(--color-brand)] focus:outline-none"
+				>
+					{statusList.map((s) => (
+						<option key={s.id} value={s.id}>
+							Mover para: {s.label}
+						</option>
+					))}
+				</select>
+			)}
 		</article>
 	);
 }
@@ -569,8 +811,8 @@ function TarefaModal({
 	responsavelSugerido: Responsavel;
 	isSaving: boolean;
 	onClose: () => void;
-	onCreate: (input: Omit<Tarefa, "id" | "createdAt">) => void;
-	onUpdate: (id: string, campos: Partial<Omit<Tarefa, "id" | "createdAt">>) => void;
+	onCreate: (input: TarefaInput) => void;
+	onUpdate: (id: string, campos: Partial<TarefaInput>) => void;
 	onDelete: (id: string) => void;
 }) {
 	const editando = !!tarefa;

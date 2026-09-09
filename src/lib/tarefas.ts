@@ -12,8 +12,13 @@ export type Tarefa = {
 	status: StatusTarefa;
 	prioridade: Prioridade;
 	prazo: Date | null;
+	// Posição dentro da coluna (menor = mais acima). Definida pelo drag & drop.
+	ordem: number;
 	createdAt: Date;
 };
+
+// Campos que o formulário preenche — `ordem` é calculada no servidor.
+export type TarefaInput = Omit<Tarefa, "id" | "createdAt" | "ordem">;
 
 export type CorColuna =
 	| "cinza"

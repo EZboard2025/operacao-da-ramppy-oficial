@@ -1,6 +1,6 @@
 "use server";
 
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, max } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDB } from "@/db";
 import {
@@ -16,6 +16,7 @@ import type {
 	Responsavel,
 	StatusTarefa,
 	Tarefa,
+	TarefaInput,
 } from "@/lib/tarefas";
 
 function rowToTarefa(row: TarefaRow): Tarefa {
@@ -27,6 +28,7 @@ function rowToTarefa(row: TarefaRow): Tarefa {
 		status: row.status,
 		prioridade: row.prioridade as Prioridade,
 		prazo: row.prazo,
+		ordem: row.ordem,
 		createdAt: row.createdAt,
 	};
 }
@@ -42,7 +44,10 @@ function rowToColuna(row: ColunaRow): Coluna {
 
 export async function listTarefas(): Promise<Tarefa[]> {
 	const db = await getDB();
-	const rows = await db.select().from(tarefasTable).orderBy(desc(tarefasTable.createdAt));
+	const rows = await db
+		.select()
+		.from(tarefasTable)
+		.orderBy(asc(tarefasTable.ordem), desc(tarefasTable.createdAt));
 	return rows.map(rowToTarefa);
 }
 
@@ -52,10 +57,11 @@ export async function listColunas(): Promise<Coluna[]> {
 	return rows.map(rowToColuna);
 }
 
-export async function createTarefa(input: Omit<Tarefa, "id" | "createdAt">): Promise<Tarefa> {
+export async function createTarefa(input: TarefaInput): Promise<Tarefa> {
 	const db = await getDB();
 	const id = crypto.randomUUID();
 	const createdAt = new Date();
+	const ordem = await proximaOrdem(input.status);
 	await db.insert(tarefasTable).values({
 		id,
 		titulo: input.titulo,
@@ -64,29 +70,57 @@ export async function createTarefa(input: Omit<Tarefa, "id" | "createdAt">): Pro
 		status: input.status,
 		prioridade: input.prioridade,
 		prazo: input.prazo,
+		ordem,
 		createdAt,
 	});
 	revalidatePath("/tarefas");
-	return { ...input, id, createdAt };
+	return { ...input, id, ordem, createdAt };
 }
 
-export async function updateTarefa(
-	id: string,
-	campos: Partial<Omit<Tarefa, "id" | "createdAt">>,
-): Promise<void> {
+export async function updateTarefa(id: string, campos: Partial<TarefaInput>): Promise<void> {
 	const db = await getDB();
 	await db.update(tarefasTable).set(campos).where(eq(tarefasTable.id, id));
 	revalidatePath("/tarefas");
 }
 
-export async function updateStatusTarefa(id: string, status: StatusTarefa) {
-	await updateTarefa(id, { status });
+export async function updateStatusTarefa(id: string, status: StatusTarefa): Promise<void> {
+	const db = await getDB();
+	const ordem = await proximaOrdem(status);
+	await db.update(tarefasTable).set({ status, ordem }).where(eq(tarefasTable.id, id));
+	revalidatePath("/tarefas");
+}
+
+// Reposiciona um lote de tarefas (drag & drop). Cada item traz a coluna e a
+// posição final; o cliente manda só o que realmente mudou.
+export async function reorderTarefas(
+	updates: Array<{ id: string; status: StatusTarefa; ordem: number }>,
+): Promise<void> {
+	if (updates.length === 0) return;
+	if (updates.length > 200) throw new Error("Lote grande demais pra reordenar.");
+	const db = await getDB();
+	for (const u of updates) {
+		await db
+			.update(tarefasTable)
+			.set({ status: u.status, ordem: u.ordem })
+			.where(eq(tarefasTable.id, u.id));
+	}
+	revalidatePath("/tarefas");
 }
 
 export async function deleteTarefa(id: string): Promise<void> {
 	const db = await getDB();
 	await db.delete(tarefasTable).where(eq(tarefasTable.id, id));
 	revalidatePath("/tarefas");
+}
+
+// Próxima posição livre no fim de uma coluna.
+async function proximaOrdem(status: StatusTarefa): Promise<number> {
+	const db = await getDB();
+	const linha = await db
+		.select({ m: max(tarefasTable.ordem) })
+		.from(tarefasTable)
+		.where(eq(tarefasTable.status, status));
+	return (Number(linha[0]?.m ?? 0) || 0) + 1000;
 }
 
 // ===== Colunas =====
