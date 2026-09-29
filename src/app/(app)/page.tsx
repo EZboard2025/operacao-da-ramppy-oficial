@@ -5,13 +5,15 @@ import {
 	MessageSquare,
 	Wallet,
 	Banknote,
-	ArrowRight,
+	ChevronRight,
 	TrendingUp,
 	TrendingDown,
 	FolderOpen,
+	CalendarDays,
 } from "lucide-react";
 import { getDB } from "@/db";
 import { custos as custosTable, vendas as vendasTable } from "@/db/schema";
+import { getSessaoAtual } from "@/lib/auth-session";
 
 export const dynamic = "force-dynamic";
 
@@ -38,116 +40,193 @@ async function getMargem() {
 	return { receita, custos, lucro, margemPct };
 }
 
+// Saudação pelo horário, sem exclamação.
+function saudacao(): string {
+	const hora = Number(
+		new Intl.DateTimeFormat("pt-BR", {
+			hour: "numeric",
+			hour12: false,
+			timeZone: "America/Sao_Paulo",
+		}).format(new Date()),
+	);
+	if (hora < 12) return "Bom dia";
+	if (hora < 18) return "Boa tarde";
+	return "Boa noite";
+}
+
+const destinos = [
+	{
+		etiqueta: "Operação",
+		titulo: "Tarefas",
+		descricao: "Quadros, listas e responsáveis do time.",
+		href: "/tarefas",
+		icone: ListTodo,
+	},
+	{
+		etiqueta: "Clientes",
+		titulo: "Feedback",
+		descricao: "O que os clientes estão dizendo, por canal e sentimento.",
+		href: "/feedback",
+		icone: MessageSquare,
+	},
+	{
+		etiqueta: "Captação",
+		titulo: "Eventos",
+		descricao: "Contatos captados em cada evento, com envio pro Pipedrive.",
+		href: "/eventos",
+		icone: CalendarDays,
+	},
+	{
+		etiqueta: "Receita",
+		titulo: "Vendas",
+		descricao: "Clientes, receita recorrente e visão da carteira.",
+		href: "/vendas",
+		icone: Banknote,
+	},
+	{
+		etiqueta: "Financeiro",
+		titulo: "Custos",
+		descricao: "Planilha de custos da operação, serviço por serviço.",
+		href: "/financeiro",
+		icone: Wallet,
+	},
+	{
+		etiqueta: "Documentos",
+		titulo: "Arquivos",
+		descricao: "Documentos importantes da Ramppy num só lugar.",
+		href: "/arquivos",
+		icone: FolderOpen,
+	},
+];
+
 export default async function Home() {
-	const { margemPct } = await getMargem();
+	const [{ receita, custos, margemPct }, usuario] = await Promise.all([
+		getMargem(),
+		getSessaoAtual(),
+	]);
+	const primeiroNome = usuario?.nome.trim().split(" ")[0] ?? "";
 
 	return (
 		<div className="flex flex-col gap-8">
-			<header>
-				<h1 className="text-3xl font-bold text-[var(--color-foreground)]">
-					Visão geral da operação Ramppy
+			<header className="m-rise">
+				<h1 className="text-[22px] font-semibold tracking-tight text-[var(--color-foreground)] sm:text-[28px]">
+					{saudacao()}
+					{primeiroNome ? `, ${primeiroNome}` : ""}
 				</h1>
-				<p className="mt-1 text-sm text-[var(--color-muted)]">tarefas, feedback, vendas e custos</p>
+				<p className="mt-1 text-sm text-[var(--color-muted)]">
+					Tarefas, feedback, eventos, vendas e custos da operação.
+				</p>
 			</header>
 
-			<section>
-				<MargemCard margemPct={margemPct} />
+			<section className="m-rise" style={{ animationDelay: "45ms" }}>
+				<Margem receita={receita} custos={custos} margemPct={margemPct} />
 			</section>
 
 			<section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-				<ModuleCard
-					title="Tarefas da equipe"
-					description="Organize o trabalho da equipe em quadros, listas e responsáveis."
-					href="/tarefas"
-					icon={<ListTodo className="h-6 w-6" />}
-				/>
-				<ModuleCard
-					title="Feedback de clientes"
-					description="Centralize o que os clientes estão dizendo e transforme em ação."
-					href="/feedback"
-					icon={<MessageSquare className="h-6 w-6" />}
-				/>
-				<ModuleCard
-					title="Vendas"
-					description="Clientes, receita recorrente e visão da carteira."
-					href="/vendas"
-					icon={<Banknote className="h-6 w-6" />}
-				/>
-				<ModuleCard
-					title="Custos"
-					description="Planilha de custos da operação - serviços"
-					href="/financeiro"
-					icon={<Wallet className="h-6 w-6" />}
-				/>
-				<ModuleCard
-					title="Arquivos"
-					description="Documentos importantes da Ramppy num só lugar."
-					href="/arquivos"
-					icon={<FolderOpen className="h-6 w-6" />}
-				/>
+				{destinos.map((destino, i) => (
+					<CartaoDestino key={destino.href} {...destino} atraso={`${90 + i * 45}ms`} />
+				))}
 			</section>
 		</div>
 	);
 }
 
-function MargemCard({ margemPct }: { margemPct: number | null }) {
+function Margem({
+	receita,
+	custos,
+	margemPct,
+}: {
+	receita: number;
+	custos: number;
+	margemPct: number | null;
+}) {
 	const semReceita = margemPct === null;
-	const positivo = !semReceita && (margemPct ?? 0) >= 0;
-	const corClasse = semReceita
+	const positivo = !semReceita && margemPct >= 0;
+	const cor = semReceita
 		? "text-[var(--color-muted)]"
 		: positivo
 			? "text-[var(--color-success)]"
 			: "text-[var(--color-danger)]";
-	const bgClasse = semReceita
-		? "bg-[var(--color-background)]"
-		: positivo
-			? "bg-[var(--color-success)]/10"
-			: "bg-[var(--color-danger)]/10";
-	const Icon = semReceita ? TrendingUp : positivo ? TrendingUp : TrendingDown;
+	const Icone = positivo ? TrendingUp : TrendingDown;
 
 	return (
-		<div className="max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm">
-			<div className="flex items-center justify-between">
-				<span className="text-sm font-medium text-[var(--color-muted)]">Margem de lucro</span>
-				<div
-					className={`flex h-9 w-9 items-center justify-center rounded-lg ${bgClasse} ${corClasse}`}
-				>
-					<Icon className="h-5 w-5" />
-				</div>
+		<div className="apple-card max-w-xl p-5">
+			<div className="flex items-start justify-between gap-4">
+				<span className="text-[11px] font-medium tracking-[0.08em] text-[var(--color-muted)] uppercase">
+					Margem de lucro
+				</span>
+				{!semReceita && (
+					<span className={`flex items-center gap-1 text-xs font-medium ${cor}`}>
+						<Icone className="h-3.5 w-3.5" strokeWidth={1.8} />
+						{positivo ? "No azul" : "No vermelho"}
+					</span>
+				)}
 			</div>
-			<div className={`mt-3 text-2xl font-bold tabular-nums ${corClasse}`}>
-				{semReceita ? "—" : formatPercent(margemPct ?? 0)}
+
+			<div className={`num mt-2 text-[36px] leading-none font-semibold tracking-[-0.03em] ${cor}`}>
+				{semReceita ? "N/A" : formatPercent(margemPct)}
+			</div>
+
+			<div className="mt-4 grid grid-cols-2 gap-4 border-t border-[var(--filete-divisor)] pt-4">
+				<div>
+					<div className="num text-2xl leading-none font-semibold text-[var(--color-foreground)]">
+						{formatBRL(receita)}
+					</div>
+					<div className="mt-1 text-xs text-[var(--color-muted)]">receita ativa por mês</div>
+				</div>
+				<div>
+					<div className="num text-2xl leading-none font-semibold text-[var(--color-foreground)]">
+						{formatBRL(custos)}
+					</div>
+					<div className="mt-1 text-xs text-[var(--color-muted)]">custo ativo por mês</div>
+				</div>
 			</div>
 		</div>
 	);
 }
 
-function ModuleCard({
-	title,
-	description,
+function CartaoDestino({
+	etiqueta,
+	titulo,
+	descricao,
 	href,
-	icon,
+	icone: Icone,
+	atraso,
 }: {
-	title: string;
-	description: string;
+	etiqueta: string;
+	titulo: string;
+	descricao: string;
 	href: string;
-	icon: React.ReactNode;
+	icone: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+	atraso: string;
 }) {
 	return (
-		<Link
-			href={href}
-			className="group flex flex-col gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm transition-all hover:border-[var(--color-brand)] hover:shadow-md"
-		>
-			<div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
-				{icon}
-			</div>
-			<div>
-				<h3 className="text-base font-semibold text-[var(--color-foreground)]">{title}</h3>
-				<p className="mt-1 text-sm text-[var(--color-muted)]">{description}</p>
-			</div>
-			<div className="mt-auto flex items-center gap-1 text-sm font-medium text-[var(--color-brand-strong)] transition-transform group-hover:translate-x-1">
-				Abrir <ArrowRight className="h-4 w-4" />
-			</div>
-		</Link>
+		// A entrada em sequência fica no invólucro: se ficasse no mesmo elemento,
+		// o transform da animação anularia o "sobe 2px" do hover.
+		<div className="m-rise flex" style={{ animationDelay: atraso }}>
+			<Link
+				href={href}
+				className="apple-card apple-card-interactive flex w-full flex-col gap-3 p-5"
+			>
+				<div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-[var(--color-foreground)]">
+					<Icone className="h-4 w-4" strokeWidth={1.8} />
+				</div>
+
+				<div>
+					<div className="text-[11px] font-medium tracking-[0.08em] text-[var(--color-muted)] uppercase">
+						{etiqueta}
+					</div>
+					<h2 className="mt-0.5 text-[17px] font-semibold tracking-[-0.015em] text-[var(--color-foreground)]">
+						{titulo}
+					</h2>
+					<p className="mt-1.5 text-sm text-[var(--color-muted)]">{descricao}</p>
+				</div>
+
+				<span className="mt-auto flex items-center gap-0.5 pt-1 text-[13px] font-semibold text-[var(--color-brand)]">
+					Abrir {titulo}
+					<ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+				</span>
+			</Link>
+		</div>
 	);
 }

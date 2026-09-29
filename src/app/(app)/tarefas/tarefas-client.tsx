@@ -37,34 +37,42 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	MoreHorizontal,
+	ImagePlus,
+	Loader2,
 } from "lucide-react";
 import {
 	type Coluna,
 	type CorColuna,
 	type Prioridade,
+	type Print,
 	type Responsavel,
 	type StatusTarefa,
 	type Tarefa,
 	type TarefaInput,
 	CORES_COLUNA,
 	COR_COLUNA_HEX,
+	PRINTS_MAX_POR_TAREFA,
 	PRIORIDADE_LABEL,
 	RESPONSAVEIS,
 	RESPONSAVEL_COR,
 	RESPONSAVEL_LABEL,
 	formatPrazo,
 	inicial,
+	urlPrint,
 } from "@/lib/tarefas";
 import {
 	createColuna,
 	createTarefa,
 	deleteColuna,
+	deletePrints,
 	deleteTarefa,
 	moveColuna,
 	reorderTarefas,
 	updateColuna,
 	updateStatusTarefa,
 	updateTarefa,
+	uploadPrint,
+	vincularPrints,
 } from "./actions";
 
 const TODOS = "__todos__";
@@ -237,9 +245,10 @@ export function TarefasClient({ tarefas, colunas }: { tarefas: Tarefa[]; colunas
 			router.refresh();
 		});
 
-	const handleCreateTarefa = (input: TarefaInput) => {
+	const handleCreateTarefa = (input: TarefaInput, printIds: string[]) => {
 		startTransition(async () => {
-			await createTarefa(input);
+			const tarefa = await createTarefa(input);
+			if (printIds.length > 0) await vincularPrints(tarefa.id, printIds);
 			router.refresh();
 			setModalTarefa({ tipo: "fechado" });
 		});
@@ -307,16 +316,18 @@ export function TarefasClient({ tarefas, colunas }: { tarefas: Tarefa[]; colunas
 		<div className="flex flex-col gap-6">
 			<header className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold text-[var(--color-foreground)]">Tarefas</h1>
+					<h1 className="text-[28px] font-semibold tracking-tight text-[var(--color-foreground)]">
+						Tarefas
+					</h1>
 					<p className="mt-1 text-sm text-[var(--color-muted)]">
-						Organize o trabalho da equipe — quadros, listas e responsáveis.
+						Organize o trabalho da equipe: quadros, listas e responsáveis.
 					</p>
 				</div>
 				<button
 					type="button"
 					onClick={() => setModalTarefa({ tipo: "criar" })}
 					disabled={semColunas}
-					className="flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)] disabled:opacity-50"
+					className="flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)] disabled:opacity-50"
 				>
 					<Plus className="h-4 w-4" />
 					Nova tarefa
@@ -409,14 +420,16 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 			<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
 				<ListTodo className="h-6 w-6" />
 			</div>
-			<h2 className="text-lg font-semibold text-[var(--color-foreground)]">Nenhuma tarefa ainda</h2>
+			<h2 className="text-[17px] font-semibold tracking-[-0.015em] text-[var(--color-foreground)]">
+				Nenhuma tarefa ainda
+			</h2>
 			<p className="max-w-sm text-sm text-[var(--color-muted)]">
 				Clique em &ldquo;Nova tarefa&rdquo; para criar a primeira tarefa da equipe.
 			</p>
 			<button
 				type="button"
 				onClick={onAdd}
-				className="mt-2 flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)]"
+				className="mt-2 flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)]"
 			>
 				<Plus className="h-4 w-4" />
 				Criar primeira tarefa
@@ -704,6 +717,26 @@ function CardTarefa({
 					<p className="line-clamp-2 text-xs text-[var(--color-muted)]">{tarefa.descricao}</p>
 				)}
 
+				{tarefa.prints.length > 0 && (
+					<div className="flex items-center gap-1.5">
+						{tarefa.prints.slice(0, 3).map((print) => (
+							/* eslint-disable-next-line @next/next/no-img-element */
+							<img
+								key={print.id}
+								src={urlPrint(print.id)}
+								alt={print.nome}
+								loading="lazy"
+								className="h-10 w-10 rounded-md border border-[var(--color-border)] object-cover"
+							/>
+						))}
+						{tarefa.prints.length > 3 && (
+							<span className="text-xs font-medium text-[var(--color-muted)]">
+								+{tarefa.prints.length - 3}
+							</span>
+						)}
+					</div>
+				)}
+
 				<div className="flex items-center justify-between gap-2 pt-1">
 					<ResponsaveisStack responsaveis={tarefa.responsaveis} />
 					{tarefa.prazo && (
@@ -811,7 +844,7 @@ function TarefaModal({
 	responsavelSugerido: Responsavel;
 	isSaving: boolean;
 	onClose: () => void;
-	onCreate: (input: TarefaInput) => void;
+	onCreate: (input: TarefaInput, printIds: string[]) => void;
 	onUpdate: (id: string, campos: Partial<TarefaInput>) => void;
 	onDelete: (id: string) => void;
 }) {
@@ -828,10 +861,22 @@ function TarefaModal({
 	const [prioridade, setPrioridade] = useState<Prioridade>(tarefa?.prioridade ?? "media");
 	const [prazo, setPrazo] = useState(tarefa?.prazo ? tarefa.prazo.toISOString().slice(0, 10) : "");
 	const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+	const [prints, setPrints] = useState<Print[]>(tarefa?.prints ?? []);
+	const [zoom, setZoom] = useState<Print | null>(null);
+
+	// Numa tarefa nova o print já sobe pro R2 antes de existir tarefa, então
+	// cancelar precisa jogar fora o que foi enviado. Editando, cada print já
+	// nasce vinculado — upload e remoção valem na hora.
+	const cancelar = () => {
+		if (!editando && prints.length > 0) void deletePrints(prints.map((p) => p.id));
+		onClose();
+	};
 
 	useEffect(() => {
 		const handleEsc = (e: KeyboardEvent) => {
-			if (e.key === "Escape") onClose();
+			if (e.key !== "Escape") return;
+			if (zoom) setZoom(null);
+			else cancelar();
 		};
 		document.addEventListener("keydown", handleEsc);
 		document.body.style.overflow = "hidden";
@@ -839,7 +884,7 @@ function TarefaModal({
 			document.removeEventListener("keydown", handleEsc);
 			document.body.style.overflow = "";
 		};
-	}, [onClose]);
+	}, [onClose, zoom, editando, prints]);
 
 	const toggleResponsavel = (r: Responsavel) => {
 		setResponsaveis((prev) => {
@@ -864,13 +909,17 @@ function TarefaModal({
 			prazo: prazoDate,
 		};
 		if (editando && tarefa) onUpdate(tarefa.id, dados);
-		else onCreate(dados);
+		else
+			onCreate(
+				dados,
+				prints.map((p) => p.id),
+			);
 	};
 
 	return (
 		<ModalShell
 			title={editando ? "Editar tarefa" : "Nova tarefa"}
-			onClose={onClose}
+			onClose={cancelar}
 			disabled={isSaving}
 		>
 			<form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-5">
@@ -896,6 +945,14 @@ function TarefaModal({
 							className={`${inputClass} resize-none`}
 						/>
 					</Field>
+
+					<PrintsField
+						tarefaId={tarefa?.id}
+						prints={prints}
+						onChange={setPrints}
+						onZoom={setZoom}
+						disabled={isSaving}
+					/>
 
 					<Field label="Responsáveis (clique pra adicionar/remover)" required>
 						<div className="grid grid-cols-3 gap-2">
@@ -1003,22 +1060,23 @@ function TarefaModal({
 					<div className="flex gap-3">
 						<button
 							type="button"
-							onClick={onClose}
+							onClick={cancelar}
 							disabled={isSaving}
-							className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
+							className="rounded-xl bg-[var(--color-surface)] px-4 py-2 text-sm font-semibold text-[#374151] shadow-[inset_0_0_0_1px_rgba(15,12,8,0.12)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
 						>
 							Cancelar
 						</button>
 						<button
 							type="submit"
 							disabled={isSaving}
-							className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+							className="rounded-xl bg-[var(--color-brand)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
 						>
 							{isSaving ? "Salvando..." : editando ? "Salvar alterações" : "Criar tarefa"}
 						</button>
 					</div>
 				</div>
 			</form>
+			{zoom && <PrintZoom print={zoom} onClose={() => setZoom(null)} />}
 		</ModalShell>
 	);
 }
@@ -1152,14 +1210,14 @@ function ColunaModal({
 							type="button"
 							onClick={onClose}
 							disabled={isSaving}
-							className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
+							className="rounded-xl bg-[var(--color-surface)] px-4 py-2 text-sm font-semibold text-[#374151] shadow-[inset_0_0_0_1px_rgba(15,12,8,0.12)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
 						>
 							Cancelar
 						</button>
 						<button
 							type="submit"
 							disabled={isSaving}
-							className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+							className="rounded-xl bg-[var(--color-brand)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
 						>
 							{isSaving ? "Salvando..." : editando ? "Salvar alterações" : "Criar coluna"}
 						</button>
@@ -1167,6 +1225,219 @@ function ColunaModal({
 				</div>
 			</form>
 		</ModalShell>
+	);
+}
+
+// Campo de prints da tarefa: aceita colar (Ctrl+V), arrastar a imagem ou
+// escolher pelo seletor. Cada print sobe na hora pro R2 pra dar preview
+// imediato — o vínculo com a tarefa acontece no submit quando ela é nova.
+function PrintsField({
+	tarefaId,
+	prints,
+	onChange,
+	onZoom,
+	disabled,
+}: {
+	tarefaId?: string;
+	prints: Print[];
+	onChange: React.Dispatch<React.SetStateAction<Print[]>>;
+	onZoom: (print: Print) => void;
+	disabled: boolean;
+}) {
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [enviando, setEnviando] = useState(0);
+	const [erro, setErro] = useState("");
+	const [sobreDropzone, setSobreDropzone] = useState(false);
+
+	const cheio = prints.length + enviando >= PRINTS_MAX_POR_TAREFA;
+
+	const enviar = async (lista: File[]) => {
+		const imagens = lista.filter((f) => f.type.startsWith("image/"));
+		if (imagens.length === 0) return;
+
+		const espaco = PRINTS_MAX_POR_TAREFA - prints.length - enviando;
+		if (espaco <= 0) {
+			setErro(`Máximo de ${PRINTS_MAX_POR_TAREFA} prints por tarefa.`);
+			return;
+		}
+		const alvo = imagens.slice(0, espaco);
+		setErro(alvo.length < imagens.length ? `Só cabem mais ${espaco} print(s) aqui.` : "");
+		setEnviando((n) => n + alvo.length);
+
+		for (const file of alvo) {
+			const formData = new FormData();
+			formData.append("file", file);
+			formData.append("tarefaId", tarefaId ?? "");
+			try {
+				const res = await uploadPrint(formData);
+				if (res.ok) onChange((prev) => [...prev, res.print]);
+				else setErro(res.erro);
+			} catch {
+				setErro("Falha ao enviar o print. Tenta de novo.");
+			} finally {
+				setEnviando((n) => n - 1);
+			}
+		}
+	};
+
+	// O paste é global (o usuário cola com o foco em qualquer campo do modal),
+	// então o listener fica no document e lê a versão atual do `enviar`.
+	const enviarRef = useRef(enviar);
+	useEffect(() => {
+		enviarRef.current = enviar;
+	});
+	useEffect(() => {
+		const handlePaste = (e: ClipboardEvent) => {
+			if (disabled) return;
+			const arquivos = Array.from(e.clipboardData?.files ?? []);
+			if (!arquivos.some((f) => f.type.startsWith("image/"))) return;
+			e.preventDefault();
+			void enviarRef.current(arquivos);
+		};
+		document.addEventListener("paste", handlePaste);
+		return () => document.removeEventListener("paste", handlePaste);
+	}, [disabled]);
+
+	const remover = (print: Print) => {
+		onChange((prev) => prev.filter((p) => p.id !== print.id));
+		void deletePrints([print.id]);
+	};
+
+	const vazio = prints.length === 0 && enviando === 0;
+
+	return (
+		<div className="flex flex-col gap-1.5">
+			<span className="text-xs font-semibold text-[var(--color-foreground)]">
+				Prints
+				<span className="ml-1 font-normal text-[var(--color-muted)]">
+					· cole com Ctrl+V, arraste a imagem ou clique pra escolher
+				</span>
+			</span>
+
+			<div
+				onDragOver={(e) => {
+					e.preventDefault();
+					if (!disabled) setSobreDropzone(true);
+				}}
+				onDragLeave={() => setSobreDropzone(false)}
+				onDrop={(e) => {
+					e.preventDefault();
+					setSobreDropzone(false);
+					if (!disabled) void enviar(Array.from(e.dataTransfer.files));
+				}}
+				className={`rounded-lg border border-dashed p-3 transition-colors ${
+					sobreDropzone
+						? "border-[var(--color-brand)] bg-[var(--color-brand)]/5"
+						: "border-[var(--color-border)]"
+				}`}
+			>
+				{vazio ? (
+					<button
+						type="button"
+						onClick={() => inputRef.current?.click()}
+						disabled={disabled}
+						className="flex w-full flex-col items-center gap-1 py-3 text-[var(--color-muted)] transition-colors hover:text-[var(--color-foreground)] disabled:opacity-50"
+					>
+						<ImagePlus className="h-5 w-5" />
+						<span className="text-xs font-medium">Cole, arraste ou clique pra anexar prints</span>
+						<span className="text-[11px]">PNG, JPG, WEBP ou GIF, até 10MB cada</span>
+					</button>
+				) : (
+					<div className="flex flex-wrap gap-2">
+						{prints.map((print) => (
+							<div key={print.id} className="group/print relative">
+								<button
+									type="button"
+									onClick={() => onZoom(print)}
+									title={print.nome}
+									className="block h-20 w-20 overflow-hidden rounded-lg border border-[var(--color-border)] transition-colors hover:border-[var(--color-brand)]"
+								>
+									{/* eslint-disable-next-line @next/next/no-img-element */}
+									<img
+										src={urlPrint(print.id)}
+										alt={print.nome}
+										className="h-full w-full object-cover"
+									/>
+								</button>
+								<button
+									type="button"
+									onClick={() => remover(print)}
+									disabled={disabled}
+									title="Remover print"
+									className="absolute -right-1.5 -top-1.5 rounded-full bg-[var(--color-danger)] p-1 text-white opacity-0 shadow-sm transition-opacity group-hover/print:opacity-100 focus:opacity-100 disabled:opacity-50"
+								>
+									<X className="h-3 w-3" />
+								</button>
+							</div>
+						))}
+
+						{Array.from({ length: enviando }).map((_, i) => (
+							<div
+								key={`enviando-${i}`}
+								className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed border-[var(--color-border)]"
+							>
+								<Loader2 className="h-4 w-4 animate-spin text-[var(--color-muted)]" />
+							</div>
+						))}
+
+						{!cheio && (
+							<button
+								type="button"
+								onClick={() => inputRef.current?.click()}
+								disabled={disabled}
+								className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-[var(--color-border)] text-[var(--color-muted)] transition-colors hover:border-[var(--color-brand)] hover:text-[var(--color-foreground)] disabled:opacity-50"
+							>
+								<Plus className="h-4 w-4" />
+								<span className="text-[11px]">Adicionar</span>
+							</button>
+						)}
+					</div>
+				)}
+
+				<input
+					ref={inputRef}
+					type="file"
+					accept="image/png,image/jpeg,image/webp,image/gif"
+					multiple
+					hidden
+					onChange={(e) => {
+						void enviar(Array.from(e.target.files ?? []));
+						e.target.value = "";
+					}}
+				/>
+			</div>
+
+			{erro && <span className="text-xs text-[var(--color-danger)]">{erro}</span>}
+		</div>
+	);
+}
+
+function PrintZoom({ print, onClose }: { print: Print; onClose: () => void }) {
+	return (
+		<div
+			className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-3 bg-black/80 p-6"
+			onClick={onClose}
+		>
+			{/* eslint-disable-next-line @next/next/no-img-element */}
+			<img
+				src={urlPrint(print.id)}
+				alt={print.nome}
+				onClick={(e) => e.stopPropagation()}
+				className="max-h-[80vh] max-w-full rounded-lg object-contain shadow-2xl"
+			/>
+			<div className="flex items-center gap-3 text-xs text-white/80">
+				<span className="max-w-[60vw] truncate">{print.nome}</span>
+				<a
+					href={urlPrint(print.id)}
+					target="_blank"
+					rel="noreferrer"
+					onClick={(e) => e.stopPropagation()}
+					className="underline hover:text-white"
+				>
+					Abrir em nova aba
+				</a>
+			</div>
+		</div>
 	);
 }
 
@@ -1185,15 +1456,17 @@ function ModalShell({
 }) {
 	return (
 		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm m-veu"
 			onClick={onClose}
 		>
 			<div
-				className={`w-full ${maxWidth} overflow-hidden rounded-2xl bg-[var(--color-surface)] shadow-2xl`}
+				className={`w-full ${maxWidth} overflow-hidden apple-card m-modal shadow-[0_24px_64px_-24px_rgba(15,12,8,0.35)]`}
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
-					<h2 className="text-lg font-semibold text-[var(--color-foreground)]">{title}</h2>
+					<h2 className="text-[17px] font-semibold tracking-[-0.015em] text-[var(--color-foreground)]">
+						{title}
+					</h2>
 					<button
 						type="button"
 						onClick={onClose}
@@ -1209,8 +1482,7 @@ function ModalShell({
 	);
 }
 
-const inputClass =
-	"w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-foreground)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/20";
+const inputClass = "campo";
 
 function Field({
 	label,
@@ -1223,7 +1495,7 @@ function Field({
 }) {
 	return (
 		<label className="flex flex-col gap-1.5">
-			<span className="text-xs font-semibold text-[var(--color-foreground)]">
+			<span className="text-[13px] font-medium text-[#374151]">
 				{label}
 				{required && <span className="ml-1 text-[var(--color-danger)]">*</span>}
 			</span>

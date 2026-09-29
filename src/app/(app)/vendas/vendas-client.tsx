@@ -63,7 +63,9 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
 		<div className="flex flex-col gap-6">
 			<header className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold text-[var(--color-foreground)]">Vendas</h1>
+					<h1 className="text-[28px] font-semibold tracking-tight text-[var(--color-foreground)]">
+						Vendas
+					</h1>
 					<p className="mt-1 text-sm text-[var(--color-muted)]">
 						Clientes, receita recorrente e visão da carteira.
 					</p>
@@ -71,7 +73,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
 				<button
 					type="button"
 					onClick={() => setModal({ tipo: "criar" })}
-					className="flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)]"
+					className="flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)]"
 				>
 					<Plus className="h-4 w-4" />
 					Nova venda
@@ -105,7 +107,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
 				/>
 			</section>
 
-			<section className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
+			<section className="overflow-hidden apple-card">
 				<div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
 					<h2 className="text-base font-semibold text-[var(--color-foreground)]">
 						Lista de vendas
@@ -122,7 +124,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
 					<div className="overflow-x-auto">
 						<table className="w-full text-sm">
 							<thead>
-								<tr className="border-b border-[var(--color-border)] bg-[var(--color-background)] text-left text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+								<tr className="border-b border-[var(--color-border)] bg-[var(--color-background)] text-left text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-muted)]">
 									<th className="px-5 py-3">Cliente</th>
 									<th className="px-5 py-3 text-right">Funcionários</th>
 									<th className="px-5 py-3">Plano</th>
@@ -149,7 +151,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
 										<td className="px-5 py-3 text-right text-[var(--color-muted)] tabular-nums">
 											{v.numeroFuncionarios}
 										</td>
-										<td className="px-5 py-3 text-[var(--color-muted)]">{v.plano || "—"}</td>
+										<td className="px-5 py-3 text-[var(--color-muted)]">{v.plano || "N/A"}</td>
 										<td className="px-5 py-3 text-right font-medium text-[var(--color-foreground)] tabular-nums">
 											{formatBRL(v.valorMensalBRL)}
 										</td>
@@ -160,7 +162,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
 											{formatData(v.dataInicio)}
 										</td>
 										<td className="px-5 py-3 text-xs text-[var(--color-muted)]">
-											{v.notas || "—"}
+											{v.notas || "N/A"}
 										</td>
 									</tr>
 								))}
@@ -201,7 +203,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 			<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
 				<Banknote className="h-6 w-6" />
 			</div>
-			<h2 className="text-lg font-semibold text-[var(--color-foreground)]">
+			<h2 className="text-[17px] font-semibold tracking-[-0.015em] text-[var(--color-foreground)]">
 				Nenhuma venda registrada
 			</h2>
 			<p className="max-w-sm text-sm text-[var(--color-muted)]">
@@ -210,7 +212,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 			<button
 				type="button"
 				onClick={onAdd}
-				className="mt-2 flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)]"
+				className="mt-2 flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)]"
 			>
 				<Plus className="h-4 w-4" />
 				Adicionar primeira venda
@@ -231,14 +233,14 @@ function SummaryCard({
 	icon: React.ReactNode;
 }) {
 	return (
-		<div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm">
+		<div className="apple-card p-5">
 			<div className="flex items-center justify-between">
 				<span className="text-sm font-medium text-[var(--color-muted)]">{label}</span>
 				<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
 					{icon}
 				</div>
 			</div>
-			<div className="mt-3 text-3xl font-bold text-[var(--color-foreground)] tabular-nums">
+			<div className="mt-3 text-[28px] font-semibold tracking-tight text-[var(--color-foreground)] tabular-nums">
 				{value}
 			</div>
 			<div className="mt-2 text-xs text-[var(--color-muted)]">{hint}</div>
@@ -333,15 +335,15 @@ function VendaModal({
 
 	return (
 		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm m-veu"
 			onClick={onClose}
 		>
 			<div
-				className="w-full max-w-2xl overflow-hidden rounded-2xl bg-[var(--color-surface)] shadow-2xl"
+				className="w-full max-w-2xl overflow-hidden apple-card m-modal shadow-[0_24px_64px_-24px_rgba(15,12,8,0.35)]"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
-					<h2 className="text-lg font-semibold text-[var(--color-foreground)]">
+					<h2 className="text-[17px] font-semibold tracking-[-0.015em] text-[var(--color-foreground)]">
 						{editando ? "Editar venda" : "Nova venda"}
 					</h2>
 					<button
@@ -482,14 +484,14 @@ function VendaModal({
 								type="button"
 								onClick={onClose}
 								disabled={isSaving}
-								className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
+								className="rounded-xl bg-[var(--color-surface)] px-4 py-2 text-sm font-semibold text-[#374151] shadow-[inset_0_0_0_1px_rgba(15,12,8,0.12)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
 							>
 								Cancelar
 							</button>
 							<button
 								type="submit"
 								disabled={isSaving}
-								className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+								className="rounded-xl bg-[var(--color-brand)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
 							>
 								{isSaving ? "Salvando..." : editando ? "Salvar alterações" : "Adicionar venda"}
 							</button>
@@ -501,8 +503,7 @@ function VendaModal({
 	);
 }
 
-const inputClass =
-	"w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-foreground)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/20";
+const inputClass = "campo";
 
 function Field({
 	label,
@@ -515,7 +516,7 @@ function Field({
 }) {
 	return (
 		<label className="flex flex-col gap-1.5">
-			<span className="text-xs font-semibold text-[var(--color-foreground)]">
+			<span className="text-[13px] font-medium text-[#374151]">
 				{label}
 				{required && <span className="ml-1 text-[var(--color-danger)]">*</span>}
 			</span>

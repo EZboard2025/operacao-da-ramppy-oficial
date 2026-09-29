@@ -4,6 +4,24 @@ export type Prioridade = "baixa" | "media" | "alta";
 // Status agora é o id de uma coluna dinâmica (string livre)
 export type StatusTarefa = string;
 
+// Print (imagem) anexado a uma tarefa. A URL é servida pela rota
+// /tarefas/prints/<id>, que exige sessão — nada do R2 fica público.
+export type Print = {
+	id: string;
+	nome: string;
+	tipoMime: string;
+	tamanhoBytes: number;
+	createdAt: Date;
+};
+
+export const PRINT_MAX_BYTES = 10 * 1024 * 1024;
+
+export const PRINT_TIPOS_ACEITOS = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+
+export const PRINTS_MAX_POR_TAREFA = 10;
+
+export const urlPrint = (id: string) => `/tarefas/prints/${id}`;
+
 export type Tarefa = {
 	id: string;
 	titulo: string;
@@ -14,11 +32,13 @@ export type Tarefa = {
 	prazo: Date | null;
 	// Posição dentro da coluna (menor = mais acima). Definida pelo drag & drop.
 	ordem: number;
+	prints: Print[];
 	createdAt: Date;
 };
 
-// Campos que o formulário preenche — `ordem` é calculada no servidor.
-export type TarefaInput = Omit<Tarefa, "id" | "createdAt" | "ordem">;
+// Campos que o formulário preenche — `ordem` é calculada no servidor e os
+// prints têm ciclo de vida próprio (upload/exclusão são ações separadas).
+export type TarefaInput = Omit<Tarefa, "id" | "createdAt" | "ordem" | "prints">;
 
 export type CorColuna =
 	| "cinza"

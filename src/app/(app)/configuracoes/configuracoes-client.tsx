@@ -79,13 +79,15 @@ export function ConfiguracoesClient({ usuarios }: { usuarios: Usuario[] }) {
 	return (
 		<div className="flex flex-col gap-6">
 			<header>
-				<h1 className="text-3xl font-bold text-[var(--color-foreground)]">Configurações</h1>
+				<h1 className="text-[28px] font-semibold tracking-tight text-[var(--color-foreground)]">
+					Configurações
+				</h1>
 				<p className="mt-1 text-sm text-[var(--color-muted)]">
 					Gerencie quem tem acesso à plataforma.
 				</p>
 			</header>
 
-			<section className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
+			<section className="overflow-hidden apple-card">
 				<div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
 					<div>
 						<h2 className="text-base font-semibold text-[var(--color-foreground)]">Equipe</h2>
@@ -99,7 +101,7 @@ export function ConfiguracoesClient({ usuarios }: { usuarios: Usuario[] }) {
 							setErroGlobal(null);
 							setModal({ tipo: "criar" });
 						}}
-						className="flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)]"
+						className="flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)]"
 					>
 						<Plus className="h-4 w-4" />
 						Criar conta
@@ -174,14 +176,16 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 			<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
 				<Users className="h-6 w-6" />
 			</div>
-			<h2 className="text-lg font-semibold text-[var(--color-foreground)]">Nenhuma conta criada</h2>
+			<h2 className="text-[17px] font-semibold tracking-[-0.015em] text-[var(--color-foreground)]">
+				Nenhuma conta criada
+			</h2>
 			<p className="max-w-sm text-sm text-[var(--color-muted)]">
 				Cadastre os e-mails e senhas das pessoas que vão acessar a plataforma.
 			</p>
 			<button
 				type="button"
 				onClick={onAdd}
-				className="mt-2 flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)]"
+				className="mt-2 flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)]"
 			>
 				<Plus className="h-4 w-4" />
 				Criar primeira conta
@@ -423,14 +427,14 @@ function CriarOuEditarModal(props: {
 							type="button"
 							onClick={props.onClose}
 							disabled={props.isSaving}
-							className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
+							className="rounded-xl bg-[var(--color-surface)] px-4 py-2 text-sm font-semibold text-[#374151] shadow-[inset_0_0_0_1px_rgba(15,12,8,0.12)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
 						>
 							Cancelar
 						</button>
 						<button
 							type="submit"
 							disabled={props.isSaving}
-							className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+							className="rounded-xl bg-[var(--color-brand)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
 						>
 							{props.isSaving ? "Salvando..." : editando ? "Salvar alterações" : "Criar conta"}
 						</button>
@@ -518,14 +522,14 @@ function ResetSenhaModal({
 						type="button"
 						onClick={onClose}
 						disabled={isSaving}
-						className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
+						className="rounded-xl bg-[var(--color-surface)] px-4 py-2 text-sm font-semibold text-[#374151] shadow-[inset_0_0_0_1px_rgba(15,12,8,0.12)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
 					>
 						Cancelar
 					</button>
 					<button
 						type="submit"
 						disabled={isSaving}
-						className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+						className="rounded-xl bg-[var(--color-brand)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
 					>
 						{isSaving ? "Salvando..." : "Redefinir senha"}
 					</button>
@@ -550,15 +554,17 @@ function ModalShell({
 }) {
 	return (
 		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm m-veu"
 			onClick={onClose}
 		>
 			<div
-				className={`w-full ${maxWidth} overflow-hidden rounded-2xl bg-[var(--color-surface)] shadow-2xl`}
+				className={`w-full ${maxWidth} overflow-hidden apple-card m-modal shadow-[0_24px_64px_-24px_rgba(15,12,8,0.35)]`}
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
-					<h2 className="text-lg font-semibold text-[var(--color-foreground)]">{title}</h2>
+					<h2 className="text-[17px] font-semibold tracking-[-0.015em] text-[var(--color-foreground)]">
+						{title}
+					</h2>
 					<button
 						type="button"
 						onClick={onClose}
@@ -574,8 +580,7 @@ function ModalShell({
 	);
 }
 
-const inputClass =
-	"w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-foreground)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/20";
+const inputClass = "campo";
 
 function Field({
 	label,
@@ -590,7 +595,7 @@ function Field({
 }) {
 	return (
 		<label className="flex flex-col gap-1.5">
-			<span className="text-xs font-semibold text-[var(--color-foreground)]">
+			<span className="text-[13px] font-medium text-[#374151]">
 				{label}
 				{required && <span className="ml-1 text-[var(--color-danger)]">*</span>}
 			</span>

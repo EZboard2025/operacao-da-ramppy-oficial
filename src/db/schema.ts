@@ -152,3 +152,60 @@ export const ticketsDev = sqliteTable("tickets_dev", {
 
 export type TicketDevRow = typeof ticketsDev.$inferSelect;
 export type TicketDevInsert = typeof ticketsDev.$inferInsert;
+
+// Prints (imagens) anexados a uma tarefa. `tarefa_id` fica vazio enquanto o
+// print foi enviado mas a tarefa ainda não foi criada (upload acontece antes
+// do submit pra dar preview imediato); é preenchido no vincularPrints.
+export const prints = sqliteTable("prints", {
+	id: text("id").primaryKey(),
+	tarefaId: text("tarefa_id").notNull().default(""),
+	nome: text("nome").notNull(),
+	tipoMime: text("tipo_mime").notNull(),
+	tamanhoBytes: integer("tamanho_bytes").notNull(),
+	r2Key: text("r2_key").notNull(),
+	uploadedById: text("uploaded_by_id"),
+	uploadedByNome: text("uploaded_by_nome").notNull().default(""),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+export type PrintRow = typeof prints.$inferSelect;
+export type PrintInsert = typeof prints.$inferInsert;
+
+export const eventos = sqliteTable("eventos", {
+	id: text("id").primaryKey(),
+	nome: text("nome").notNull(),
+	local: text("local").notNull().default(""),
+	data: integer("data", { mode: "timestamp" }),
+	notas: text("notas").notNull().default(""),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+export type EventoRow = typeof eventos.$inferSelect;
+export type EventoInsert = typeof eventos.$inferInsert;
+
+// Contatos captados em um evento. Sempre pertencem a um evento (evento_id).
+export const contatosEvento = sqliteTable("contatos_evento", {
+	id: text("id").primaryKey(),
+	eventoId: text("evento_id").notNull(),
+	nome: text("nome").notNull(),
+	empresa: text("empresa").notNull().default(""),
+	cargo: text("cargo").notNull().default(""),
+	telefone: text("telefone").notNull().default(""),
+	email: text("email").notNull().default(""),
+	notas: text("notas").notNull().default(""),
+	status: text("status").notNull().default("novo"),
+	// Sincronização com o Pipedrive (ver src/lib/pipedrive.ts)
+	pipedriveDealId: text("pipedrive_deal_id").notNull().default(""),
+	pipedriveStatus: text("pipedrive_status").notNull().default("pendente"),
+	pipedriveErro: text("pipedrive_erro").notNull().default(""),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+export type ContatoEventoRow = typeof contatosEvento.$inferSelect;
+export type ContatoEventoInsert = typeof contatosEvento.$inferInsert;

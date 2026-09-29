@@ -9,3 +9,20 @@ NEXTJS_ENV=development
 # Gera um novo com: openssl rand -hex 32
 # IMPORTANTE: use um segredo DIFERENTE do de produção.
 AUTH_SECRET="trocar-por-openssl-rand-hex-32"
+
+# ===== Pipedrive (opcional) =====
+# Sem PIPEDRIVE_API_TOKEN a integração fica desligada: os contatos captados nos
+# eventos continuam salvos aqui, só não sobem pro CRM.
+#
+# Token: no Pipedrive, foto do perfil (canto superior direito) > Company
+# settings > Personal preferences > API. Ou direto: app.pipedrive.com/settings/api
+PIPEDRIVE_API_TOKEN=""
+
+# Domínio da sua conta — o pedaço antes de .pipedrive.com na URL que você usa.
+# Ex: se você acessa ramppy.pipedrive.com, aqui vai "ramppy".
+PIPEDRIVE_DOMINIO=""
+
+# Onde o negócio nasce. Os valores abaixo são os padrões — só preenche se os
+# nomes no seu Pipedrive forem outros (precisa bater igualzinho ao que aparece lá).
+PIPEDRIVE_FUNIL="Funil Leads"
+PIPEDRIVE_ESTAGIO="Contato"

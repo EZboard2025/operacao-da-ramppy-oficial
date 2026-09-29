@@ -1,28 +1,63 @@
 @import "tailwindcss";
 
+/* Tokens do Manual de Design Ramppy (setembro de 2026).
+   Chão claro, papel com filete, verde só onde tem ação. */
 @theme inline {
-	--color-background: #f7faf8;
-	--color-foreground: #0f1f17;
+	/* Chão, papel e filete */
+	--color-background: #f9fafb;
 	--color-surface: #ffffff;
-	--color-border: #e5ebe7;
+	--color-border: rgba(15, 12, 8, 0.1);
+	--color-foreground: #111827;
 	--color-muted: #6b7280;
 
-	--color-sidebar: #1a4a2f;
-	--color-sidebar-hover: #225f3c;
-	--color-sidebar-active: #2d7a4d;
-	--color-sidebar-text: #e8f3ec;
-	--color-sidebar-text-muted: #a8c4b3;
+	/* Marca e ação: o verde marca botão, link e estado ativo. Nunca fundo. */
+	--color-brand: #2d8c3c;
+	--color-brand-strong: #1b6b28;
 
-	--color-brand: #22c55e;
-	--color-brand-strong: #16a34a;
+	/* Estado e dados: sempre acompanhados de palavra, nunca só a cor */
+	--color-success: #1f7a4a;
+	--color-warning: #a86b0f;
+	--color-danger: #a03333;
+	--color-info: #6e6a60;
 
-	--color-success: #16a34a;
-	--color-warning: #d97706;
-	--color-danger: #dc2626;
-	--color-info: #2563eb;
+	/* A fonte do sistema: SF no Mac, Segoe no Windows, Roboto no Android.
+	   Geist fica só nas peças de marketing, fora do produto. */
+	--font-sans:
+		-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI",
+		Roboto, sans-serif;
+	--font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-	--font-sans: var(--font-geist-sans);
-	--font-mono: var(--font-geist-mono);
+	/* Uma curva para tudo: os utilitários transition-* herdam a curva da base
+	   em vez da curva padrão do Tailwind. */
+	--default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+	--default-transition-duration: 160ms;
+}
+
+:root {
+	/* Raios: cartão 20, controle 13, etiqueta 9, pílula total */
+	--radius-card: 20px;
+	--radius-control: 13px;
+	--radius-tag: 9px;
+
+	/* Filetes */
+	--filete: rgba(15, 12, 8, 0.1);
+	--filete-campo: rgba(15, 12, 8, 0.14);
+	--filete-divisor: rgba(15, 12, 8, 0.06);
+
+	/* Sombras: papel, não hospital */
+	--shadow-card: 0 1px 2px rgba(15, 12, 8, 0.03);
+	--shadow-card-hover:
+		0 1px 2px rgba(15, 12, 8, 0.04), 0 8px 24px -12px rgba(15, 12, 8, 0.1),
+		0 24px 48px -24px rgba(15, 12, 8, 0.12);
+	--shadow-pilula: 0 12px 32px -10px rgba(45, 140, 60, 0.6);
+
+	/* Uma curva para tudo, três tempos */
+	--ease-ramppy: cubic-bezier(0.22, 1, 0.36, 1);
+	--dur-grande: 450ms;
+	--dur-medio-entra: 240ms;
+	--dur-medio-sai: 180ms;
+	--dur-pequeno: 160ms;
+	--dur-menor: 120ms;
 }
 
 html,
@@ -32,5 +67,183 @@ body {
 }
 
 body {
-	font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+	font-family: var(--font-sans);
+}
+
+/* ===== Material ===== */
+
+@layer components {
+	/* Papel: o cartão de tudo. Filete de 1px e sombra quase invisível. */
+	.apple-card {
+		background: var(--color-surface);
+		border: 1px solid var(--filete);
+		border-radius: var(--radius-card);
+		box-shadow: var(--shadow-card);
+	}
+
+	/* Cartão clicável: sobe 2px em 200ms no hover. */
+	.apple-card-interactive {
+		cursor: pointer;
+		transition:
+			transform 200ms ease-out,
+			box-shadow 200ms ease-out;
+	}
+
+	.apple-card-interactive:hover {
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-card-hover);
+	}
+
+	/* Etiqueta: raio 9, 11px, peso 500. Cinza por padrão. */
+	.apple-tag {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		border-radius: var(--radius-tag);
+		padding: 2px 8px;
+		font-size: 11px;
+		font-weight: 500;
+		line-height: 1.4;
+		background: #f3f4f6;
+		color: #4b5563;
+	}
+
+	/* Campo: 44px, raio 13, 15px, filete interno, anel verde no foco. */
+	.campo {
+		width: 100%;
+		min-height: 44px;
+		border-radius: var(--radius-control);
+		background: var(--color-surface);
+		padding: 0 14px;
+		font-size: 15px;
+		color: var(--color-foreground);
+		border: 0;
+		box-shadow: inset 0 0 0 1px var(--filete-campo);
+		outline: none;
+		transition: box-shadow var(--dur-pequeno) var(--ease-ramppy);
+	}
+
+	textarea.campo {
+		padding: 12px 14px;
+		line-height: 1.55;
+	}
+
+	.campo::placeholder {
+		color: #9ca3af;
+	}
+
+	.campo:focus {
+		box-shadow:
+			inset 0 0 0 1px var(--color-brand),
+			0 0 0 3px rgba(45, 140, 60, 0.16);
+	}
+
+	.campo:disabled {
+		opacity: 0.5;
+	}
+
+	/* Busca: cinza sem filete, com lupa. */
+	.campo-busca {
+		background: #f3f4f6;
+		box-shadow: none;
+	}
+
+	/* Trilho da ilha: rola só na horizontal e sem barra visível. Com
+	   overflow-x:auto o navegador liga a rolagem vertical junto, e a barra
+	   comia a altura dos ícones no celular. */
+	.trilho-ilha {
+		overflow-x: auto;
+		overflow-y: hidden;
+		overscroll-behavior-x: contain;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+		scroll-behavior: smooth;
+	}
+
+	.trilho-ilha::-webkit-scrollbar {
+		display: none;
+	}
+
+	/* Arrastando com o ponteiro: o cursor conta o que está acontecendo. */
+	.trilho-ilha.arrastando {
+		cursor: grabbing;
+		scroll-behavior: auto;
+	}
+
+	/* Vidro: só na ilha do topo e na barra do celular. */
+	.ilha-vidro {
+		background: rgba(255, 255, 255, 0.6);
+		backdrop-filter: blur(12px) saturate(1.6);
+		-webkit-backdrop-filter: blur(12px) saturate(1.6);
+		border: 1px solid var(--filete);
+		box-shadow:
+			0 1px 2px rgba(15, 12, 8, 0.04),
+			0 12px 32px -18px rgba(15, 12, 8, 0.18);
+	}
+}
+
+/* Números em coluna e nota: sempre tabulares. */
+.num {
+	font-variant-numeric: tabular-nums;
+}
+
+/* ===== Movimento ===== */
+
+/* A página entra em sequência: cada bloco sobe 10px. Sem carregador. */
+.m-rise {
+	animation: m-rise var(--dur-medio-entra) var(--ease-ramppy) both;
+}
+
+@keyframes m-rise {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Modal: opacidade, sobe 8px e escala 0,97. */
+.m-modal {
+	animation: m-modal var(--dur-medio-entra) var(--ease-ramppy) both;
+}
+
+@keyframes m-modal {
+	from {
+		opacity: 0;
+		transform: translateY(8px) scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.m-veu {
+	animation: m-fade var(--dur-medio-entra) var(--ease-ramppy) both;
+}
+
+@keyframes m-fade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* Quando o sistema pede menos movimento: 120ms, só opacidade. */
+@media (prefers-reduced-motion: reduce) {
+	.apple-card-interactive:hover {
+		transform: none;
+	}
+
+	.m-rise,
+	.m-modal,
+	.m-veu {
+		animation-duration: var(--dur-menor);
+		animation-name: m-fade;
+	}
 }

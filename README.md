@@ -105,6 +105,30 @@ npm run db:seed:local
 # Login: matheus@ramppy.com.br / admin123
 ```
 
+## Integração com o Pipedrive (opcional)
+
+Todo contato adicionado num evento (aba **Eventos**) vira automaticamente um
+negócio no Pipedrive, na coluna configurada — junto com a pessoa, a organização
+e uma nota dizendo em que evento ele foi captado.
+
+Pra ligar:
+
+```bash
+# 1. Pega o token em app.pipedrive.com/settings/api
+# 2. Local: preenche as PIPEDRIVE_* no .dev.vars (ver .dev.vars.example)
+# 3. Produção:
+npx wrangler secret put PIPEDRIVE_API_TOKEN
+npx wrangler secret put PIPEDRIVE_DOMINIO
+```
+
+Sem o token a integração fica desligada e os contatos continuam sendo salvos
+normalmente aqui — só não sobem pro CRM. Se o Pipedrive recusar um envio, o
+contato **não se perde**: o card mostra o erro e um botão de "Tentar de novo".
+
+O funil e a coluna de destino são resolvidos **pelo nome** (padrão: funil
+`Funil Leads`, coluna `Contato`). Se você renomear a coluna no Pipedrive, ajusta
+`PIPEDRIVE_ESTAGIO` — senão o envio passa a falhar dizendo quais colunas existem.
+
 ## Setup inicial do Cloudflare (uma vez)
 
 Pra deployar essa stack numa conta Cloudflare nova:
