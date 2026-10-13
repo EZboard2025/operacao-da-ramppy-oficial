@@ -2,7 +2,6 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import {
 	ListTodo,
-	MessageSquare,
 	Wallet,
 	Banknote,
 	ChevronRight,
@@ -10,6 +9,7 @@ import {
 	TrendingDown,
 	FolderOpen,
 	CalendarDays,
+	NotebookPen,
 } from "lucide-react";
 import { getDB } from "@/db";
 import { custos as custosTable, vendas as vendasTable } from "@/db/schema";
@@ -63,11 +63,11 @@ const destinos = [
 		icone: ListTodo,
 	},
 	{
-		etiqueta: "Clientes",
-		titulo: "Feedback",
-		descricao: "O que os clientes estão dizendo, por canal e sentimento.",
-		href: "/feedback",
-		icone: MessageSquare,
+		etiqueta: "Anotações",
+		titulo: "Notas",
+		descricao: "Seu espaço e o da equipe, com checklists.",
+		href: "/notas",
+		icone: NotebookPen,
 	},
 	{
 		etiqueta: "Captação",
@@ -114,7 +114,7 @@ export default async function Home() {
 					{primeiroNome ? `, ${primeiroNome}` : ""}
 				</h1>
 				<p className="mt-1 text-sm text-[var(--color-muted)]">
-					Tarefas, feedback, eventos, vendas e custos da operação.
+					Tarefas, notas, eventos, vendas e custos da operação.
 				</p>
 			</header>
 

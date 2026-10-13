@@ -11,7 +11,9 @@ export type TipoEvento =
 	| "usuario.papel.alterado"
 	| "arquivo.upload"
 	| "arquivo.delete"
-	| "arquivo.download";
+	| "arquivo.download"
+	| "nota.criada"
+	| "nota.excluida";
 
 type RegistrarInput = {
 	tipo: TipoEvento;

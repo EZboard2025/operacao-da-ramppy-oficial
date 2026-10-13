@@ -70,7 +70,6 @@ async function buildSQL() {
 			"arquivos",
 			"tarefas",
 			"colunas",
-			"feedbacks",
 			"custos",
 			"vendas",
 			"usuarios",
@@ -133,68 +132,13 @@ async function buildSQL() {
 	}
 	linhas.push("");
 
-	// --- Vendas (clientes) ---
+	// --- Helpers de data ---
 	const agora = new Date();
 	const diasAtras = (d) => {
 		const x = new Date(agora);
 		x.setDate(x.getDate() - d);
 		return x;
 	};
-
-	const vendas = [
-		{
-			cliente: "Acme Logística LTDA",
-			funcionarios: 45,
-			valor: 1890.0,
-			plano: "Pro",
-			status: "ativa",
-			inicio: diasAtras(220),
-			notas: "Cliente referência — pediu integração com Bling.",
-		},
-		{
-			cliente: "Padaria do Bairro ME",
-			funcionarios: 8,
-			valor: 349.0,
-			plano: "Starter",
-			status: "ativa",
-			inicio: diasAtras(95),
-			notas: "Indicação do Gabriel.",
-		},
-		{
-			cliente: "Construtora Vértice",
-			funcionarios: 120,
-			valor: 4500.0,
-			plano: "Enterprise",
-			status: "ativa",
-			inicio: diasAtras(380),
-			notas: "Reajuste anual previsto pra Q3.",
-		},
-		{
-			cliente: "Studio Marília Design",
-			funcionarios: 4,
-			valor: 199.0,
-			plano: "Starter",
-			status: "trial",
-			inicio: diasAtras(12),
-			notas: "Trial expira em 18 dias.",
-		},
-		{
-			cliente: "TechBR Sistemas SA",
-			funcionarios: 67,
-			valor: 2750.0,
-			plano: "Pro",
-			status: "cancelada",
-			inicio: diasAtras(540),
-			notas: "Churn por troca de stack interna. Não rolou retenção.",
-		},
-	];
-	linhas.push("-- Vendas (clientes)");
-	for (const v of vendas) {
-		linhas.push(
-			`INSERT INTO vendas (id, cliente, numero_funcionarios, valor_mensal_brl, plano, status, data_inicio, notas) VALUES (${s(uuid())}, ${s(v.cliente)}, ${n(v.funcionarios)}, ${n(v.valor)}, ${s(v.plano)}, ${s(v.status)}, ${ts(v.inicio)}, ${s(v.notas)});`,
-		);
-	}
-	linhas.push("");
 
 	// --- Custos (SaaS / infra) ---
 	const custos = [
@@ -263,47 +207,6 @@ async function buildSQL() {
 	for (const c of custos) {
 		linhas.push(
 			`INSERT INTO custos (id, servico, categoria, plano, custo_mensal_brl, cobranca, status, notas, data_inicio) VALUES (${s(uuid())}, ${s(c.servico)}, ${s(c.categoria)}, ${s(c.plano)}, ${n(c.custo)}, ${s(c.cobranca)}, ${s(c.status)}, ${s(c.notas)}, ${ts(c.inicio)});`,
-		);
-	}
-	linhas.push("");
-
-	// --- Feedbacks ---
-	const feedbacks = [
-		{
-			empresa: "Acme Logística LTDA",
-			canal: "email",
-			conteudo:
-				"O relatório de margem ficou ótimo, conseguimos entender onde estamos perdendo dinheiro. Só precisava exportar pra Excel.",
-			sentimento: "positivo",
-			categoria: "Relatórios",
-		},
-		{
-			empresa: "Construtora Vértice",
-			canal: "reuniao",
-			conteudo:
-				"Acharam a UI travada em telas menores. Pediram modo escuro pro time da obra que usa no celular.",
-			sentimento: "neutro",
-			categoria: "UX",
-		},
-		{
-			empresa: "Studio Marília Design",
-			canal: "whatsapp",
-			conteudo: "Adorei a velocidade do app! Login em 2 segundos, surreal.",
-			sentimento: "positivo",
-			categoria: "Performance",
-		},
-		{
-			empresa: "TechBR Sistemas SA",
-			canal: "telefone",
-			conteudo: "Falta integração com a API deles. Sem isso não dá pra manter — vamos cancelar.",
-			sentimento: "negativo",
-			categoria: "Integrações",
-		},
-	];
-	linhas.push("-- Feedbacks");
-	for (const f of feedbacks) {
-		linhas.push(
-			`INSERT INTO feedbacks (id, empresa, canal, conteudo, sentimento, categoria) VALUES (${s(uuid())}, ${s(f.empresa)}, ${s(f.canal)}, ${s(f.conteudo)}, ${s(f.sentimento)}, ${s(f.categoria)});`,
 		);
 	}
 	linhas.push("");
@@ -388,9 +291,7 @@ async function buildSQL() {
 		stats: {
 			usuarios: usuarios.length,
 			colunas: colunas.length, // 3 vêm da migration; 1 novo (bloqueado)
-			vendas: vendas.length,
 			custos: custos.length,
-			feedbacks: feedbacks.length,
 			tarefas: tarefas.length,
 		},
 	};

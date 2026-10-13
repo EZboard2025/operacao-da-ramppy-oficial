@@ -1,6 +1,6 @@
 # Ramppy
 
-Plataforma interna da Ramppy. Centraliza tarefas, feedback de clientes, vendas, custos e arquivos
+Plataforma interna da Ramppy. Centraliza tarefas, vendas, custos e arquivos
 da operação num só lugar.
 
 **Produção:** https://rampy.matheusmunizmoreia77.workers.dev

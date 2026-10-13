@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
 	LayoutDashboard,
 	ListTodo,
-	MessageSquare,
 	Wallet,
 	Banknote,
 	Settings,
@@ -14,6 +13,7 @@ import {
 	LogIn,
 	FolderOpen,
 	CalendarDays,
+	NotebookPen,
 } from "lucide-react";
 import { sair } from "@/app/login/actions";
 import { PAPEL_COR, inicial, type Usuario } from "@/lib/usuarios";
@@ -21,7 +21,7 @@ import { PAPEL_COR, inicial, type Usuario } from "@/lib/usuarios";
 const destinos = [
 	{ href: "/", label: "Início", icon: LayoutDashboard },
 	{ href: "/tarefas", label: "Tarefas", icon: ListTodo },
-	{ href: "/feedback", label: "Feedback", icon: MessageSquare },
+	{ href: "/notas", label: "Notas", icon: NotebookPen },
 	{ href: "/eventos", label: "Eventos", icon: CalendarDays },
 	{ href: "/vendas", label: "Vendas", icon: Banknote },
 	{ href: "/financeiro", label: "Custos", icon: Wallet },

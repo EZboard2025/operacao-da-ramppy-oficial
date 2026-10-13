@@ -7,7 +7,6 @@ Contexto pra Claude Code, Cursor e qualquer outro tool de IA que abrir esse repo
 Plataforma interna da Ramppy (~3 usuários: 1 owner não-técnico + 2 devs). Centraliza:
 
 - Tarefas (kanban)
-- Feedback de clientes
 - Vendas (MRR)
 - Custos (planilha de serviços)
 - Arquivos (storage de docs importantes)
@@ -41,7 +40,6 @@ src/
 ├── app/
 │   ├── (app)/          # rotas autenticadas (layout enforça login)
 │   │   ├── tarefas/
-│   │   ├── feedback/
 │   │   ├── vendas/
 │   │   ├── financeiro/  # módulo de custos
 │   │   ├── arquivos/
@@ -56,12 +54,11 @@ src/
 │   └── sidebar.tsx
 ├── db/
 │   ├── index.ts         # exports getDB() que usa drizzle + cloudflare context
-│   └── schema.ts        # 7 tabelas: custos, feedbacks, tarefas, colunas, vendas, usuarios, arquivos
+│   └── schema.ts        # tabelas: custos, tarefas, colunas, vendas, usuarios, arquivos, auditoria, tickets_dev, prints, eventos, contatos_evento
 ├── lib/
 │   ├── arquivos.ts      # tipos + helpers (formatTamanho, etc)
 │   ├── auth-session.ts  # getSessaoAtual() = lê cookie, retorna Usuario | null
 │   ├── custos.ts
-│   ├── feedbacks.ts
 │   ├── senha.ts         # hashSenha + verificarSenha (PBKDF2)
 │   ├── sessao.ts        # assinarSessao + verificarSessao (HMAC)
 │   ├── tarefas.ts

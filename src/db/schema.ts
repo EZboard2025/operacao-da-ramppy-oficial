@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import type { ConteudoNota } from "@/lib/notas";
 
 export const custos = sqliteTable("custos", {
 	id: text("id").primaryKey(),
@@ -18,21 +19,6 @@ export const custos = sqliteTable("custos", {
 
 export type CustoRow = typeof custos.$inferSelect;
 export type CustoInsert = typeof custos.$inferInsert;
-
-export const feedbacks = sqliteTable("feedbacks", {
-	id: text("id").primaryKey(),
-	empresa: text("empresa").notNull(),
-	canal: text("canal").notNull(),
-	conteudo: text("conteudo").notNull(),
-	sentimento: text("sentimento").notNull(),
-	categoria: text("categoria").notNull().default(""),
-	createdAt: integer("created_at", { mode: "timestamp" })
-		.notNull()
-		.default(sql`(unixepoch())`),
-});
-
-export type FeedbackRow = typeof feedbacks.$inferSelect;
-export type FeedbackInsert = typeof feedbacks.$inferInsert;
 
 export const tarefas = sqliteTable("tarefas", {
 	id: text("id").primaryKey(),
@@ -209,3 +195,23 @@ export const contatosEvento = sqliteTable("contatos_evento", {
 
 export type ContatoEventoRow = typeof contatosEvento.$inferSelect;
 export type ContatoEventoInsert = typeof contatosEvento.$inferInsert;
+
+// Notas: espaço pessoal (só o dono vê) e espaço de equipe (todo mundo vê).
+// `conteudo` é o JSON do documento TipTap; `resumo` é texto puro pra listar.
+export const notas = sqliteTable("notas", {
+	id: text("id").primaryKey(),
+	escopo: text("escopo").notNull(),
+	usuarioId: text("usuario_id").notNull(),
+	titulo: text("titulo").notNull().default(""),
+	conteudo: text("conteudo", { mode: "json" }).$type<ConteudoNota>().notNull(),
+	resumo: text("resumo").notNull().default(""),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+	updatedAt: integer("updated_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+export type NotaRow = typeof notas.$inferSelect;
+export type NotaInsert = typeof notas.$inferInsert;
