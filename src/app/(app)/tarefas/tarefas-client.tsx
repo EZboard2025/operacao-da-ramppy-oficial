@@ -1,5 +1,6 @@
 "use client";
 
+import { BotaoPrincipal, CabecalhoPagina } from "@/components/cabecalho-pagina";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -314,25 +315,16 @@ export function TarefasClient({ tarefas, colunas }: { tarefas: Tarefa[]; colunas
 
 	return (
 		<div className="flex flex-col gap-6">
-			<header className="flex items-center justify-between">
-				<div>
-					<h1 className="text-[28px] font-semibold tracking-tight text-[var(--color-foreground)]">
-						Tarefas
-					</h1>
-					<p className="mt-1 text-sm text-[var(--color-muted)]">
-						Organize o trabalho da equipe: quadros, listas e responsáveis.
-					</p>
-				</div>
-				<button
-					type="button"
-					onClick={() => setModalTarefa({ tipo: "criar" })}
-					disabled={semColunas}
-					className="flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)] disabled:opacity-50"
-				>
-					<Plus className="h-4 w-4" />
-					Nova tarefa
-				</button>
-			</header>
+			<CabecalhoPagina
+				titulo="Tarefas"
+				descricao="Quadros, listas e responsáveis do time."
+				acao={
+					<BotaoPrincipal onClick={() => setModalTarefa({ tipo: "criar" })} disabled={semColunas}>
+						<Plus className="h-4 w-4" />
+						Nova tarefa
+					</BotaoPrincipal>
+				}
+			/>
 
 			{tarefas.length === 0 && !semColunas ? (
 				<EmptyState onAdd={() => setModalTarefa({ tipo: "criar" })} />

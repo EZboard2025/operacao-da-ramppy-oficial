@@ -1,5 +1,6 @@
 "use client";
 
+import { BotaoPrincipal, CabecalhoPagina } from "@/components/cabecalho-pagina";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -67,55 +68,26 @@ export function ArquivosClient({ arquivos, ehAdmin }: { arquivos: Arquivo[]; ehA
 
 	return (
 		<div className="flex flex-col gap-6">
-			<header className="flex items-center justify-between">
-				<div>
-					<h1 className="text-[28px] font-semibold tracking-tight text-[var(--color-foreground)]">
-						Arquivos
-					</h1>
-					<p className="mt-1 text-sm text-[var(--color-muted)]">
-						Documentos importantes da Ramppy num só lugar
-					</p>
-				</div>
-				{ehAdmin ? (
-					<button
-						type="button"
-						onClick={() => setModalAberto(true)}
-						className="flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)]"
-					>
-						<Upload className="h-4 w-4" />
-						Subir arquivo
-					</button>
-				) : (
-					<div
-						className="flex items-center gap-2 rounded-lg bg-[var(--color-background)] px-3 py-2 text-xs text-[var(--color-muted)] ring-1 ring-inset ring-[var(--color-border)]"
-						title="Apenas admins podem subir e excluir arquivos"
-					>
-						<Lock className="h-3.5 w-3.5" />
-						Somente admin pode subir/excluir
-					</div>
-				)}
-			</header>
-
-			<section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-				<SummaryCard
-					label="Total de arquivos"
-					value={String(arquivos.length)}
-					hint={`${categorias.length} categorias`}
-					icon={<FolderOpen className="h-5 w-5" />}
-				/>
-				<SummaryCard
-					label="Espaço usado"
-					value={formatTamanho(totalBytes)}
-					hint="Limite de 25MB por arquivo"
-					icon={<FileIcon className="h-5 w-5" />}
-				/>
-				<SummaryCard
-					label="Filtro ativo"
-					value={filtroCategoria === "todas" ? "Tudo" : filtroCategoria}
-					hint={`${filtrados.length} arquivo(s) listado(s)`}
-					icon={<Search className="h-5 w-5" />}
-				/>
-			</section>
+			<CabecalhoPagina
+				titulo="Arquivos"
+				descricao={`${arquivos.length} ${arquivos.length === 1 ? "arquivo" : "arquivos"}, ${formatTamanho(totalBytes)} usados`}
+				acao={
+					ehAdmin ? (
+						<BotaoPrincipal onClick={() => setModalAberto(true)}>
+							<Upload className="h-4 w-4" />
+							Subir arquivo
+						</BotaoPrincipal>
+					) : (
+						<span
+							className="flex items-center gap-2 text-xs text-[var(--color-muted)]"
+							title="Apenas admins podem subir e excluir arquivos"
+						>
+							<Lock className="h-3.5 w-3.5" />
+							Só admin sobe e exclui arquivos
+						</span>
+					)
+				}
+			/>
 
 			<section className="flex flex-wrap items-center gap-3">
 				<div className="relative flex-1 min-w-[240px]">
@@ -270,33 +242,6 @@ function EmptyState({ ehAdmin, onAdd }: { ehAdmin: boolean; onAdd: () => void })
 					Subir primeiro arquivo
 				</button>
 			)}
-		</div>
-	);
-}
-
-function SummaryCard({
-	label,
-	value,
-	hint,
-	icon,
-}: {
-	label: string;
-	value: string;
-	hint: string;
-	icon: React.ReactNode;
-}) {
-	return (
-		<div className="apple-card p-5">
-			<div className="flex items-center justify-between">
-				<span className="text-sm font-medium text-[var(--color-muted)]">{label}</span>
-				<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
-					{icon}
-				</div>
-			</div>
-			<div className="mt-3 text-[28px] font-semibold tracking-tight text-[var(--color-foreground)] tabular-nums">
-				{value}
-			</div>
-			<div className="mt-2 text-xs text-[var(--color-muted)]">{hint}</div>
 		</div>
 	);
 }

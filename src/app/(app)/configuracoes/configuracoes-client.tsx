@@ -1,5 +1,6 @@
 "use client";
 
+import { CabecalhoPagina } from "@/components/cabecalho-pagina";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Users, Plus, X, Trash2, Pencil, Mail, Key, Eye, EyeOff, AlertCircle } from "lucide-react";
@@ -78,14 +79,7 @@ export function ConfiguracoesClient({ usuarios }: { usuarios: Usuario[] }) {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<header>
-				<h1 className="text-[28px] font-semibold tracking-tight text-[var(--color-foreground)]">
-					Configurações
-				</h1>
-				<p className="mt-1 text-sm text-[var(--color-muted)]">
-					Gerencie quem tem acesso à plataforma.
-				</p>
-			</header>
+			<CabecalhoPagina titulo="Configurações" descricao="Quem tem acesso à plataforma." />
 
 			<section className="overflow-hidden apple-card">
 				<div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">

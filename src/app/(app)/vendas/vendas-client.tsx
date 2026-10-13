@@ -1,18 +1,10 @@
 "use client";
 
+import { Indicadores } from "@/components/indicadores";
+import { BotaoPrincipal, CabecalhoPagina } from "@/components/cabecalho-pagina";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-	Banknote,
-	Plus,
-	TrendingUp,
-	Users,
-	CheckCircle2,
-	X,
-	Trash2,
-	Pencil,
-	Building2,
-} from "lucide-react";
+import { Banknote, Plus, CheckCircle2, X, Trash2, Pencil, Building2 } from "lucide-react";
 import {
 	type StatusVenda,
 	type Venda,
@@ -61,51 +53,37 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<header className="flex items-center justify-between">
-				<div>
-					<h1 className="text-[28px] font-semibold tracking-tight text-[var(--color-foreground)]">
-						Vendas
-					</h1>
-					<p className="mt-1 text-sm text-[var(--color-muted)]">
-						Clientes, receita recorrente e visão da carteira.
-					</p>
-				</div>
-				<button
-					type="button"
-					onClick={() => setModal({ tipo: "criar" })}
-					className="flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)]"
-				>
-					<Plus className="h-4 w-4" />
-					Nova venda
-				</button>
-			</header>
+			<CabecalhoPagina
+				titulo="Vendas"
+				descricao="Clientes, receita recorrente e visão da carteira."
+				acao={
+					<BotaoPrincipal onClick={() => setModal({ tipo: "criar" })}>
+						<Plus className="h-4 w-4" />
+						Nova venda
+					</BotaoPrincipal>
+				}
+			/>
 
-			<section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-				<SummaryCard
-					label="MRR (receita mensal)"
-					value={formatBRL(mrr)}
-					hint={`${ativas.length} ${ativas.length === 1 ? "cliente ativo" : "clientes ativos"}`}
-					icon={<Banknote className="h-5 w-5" />}
-				/>
-				<SummaryCard
-					label="ARR (anualizado)"
-					value={formatBRL(arr)}
-					hint="MRR × 12"
-					icon={<TrendingUp className="h-5 w-5" />}
-				/>
-				<SummaryCard
-					label="Ticket médio"
-					value={formatBRL(ticketMedio)}
-					hint="MRR / clientes ativos"
-					icon={<CheckCircle2 className="h-5 w-5" />}
-				/>
-				<SummaryCard
-					label="Funcionários atendidos"
-					value={totalFuncionarios.toString()}
-					hint="Soma dos funcionários dos clientes ativos"
-					icon={<Users className="h-5 w-5" />}
-				/>
-			</section>
+			<Indicadores
+				itens={[
+					{
+						rotulo: "MRR (receita mensal)",
+						valor: formatBRL(mrr),
+						detalhe: `${ativas.length} ${ativas.length === 1 ? "cliente ativo" : "clientes ativos"}`,
+					},
+					{ rotulo: "ARR (anualizado)", valor: formatBRL(arr), detalhe: "MRR × 12" },
+					{
+						rotulo: "Ticket médio",
+						valor: formatBRL(ticketMedio),
+						detalhe: "MRR / clientes ativos",
+					},
+					{
+						rotulo: "Funcionários atendidos",
+						valor: totalFuncionarios.toString(),
+						detalhe: "Soma dos funcionários dos clientes ativos",
+					},
+				]}
+			/>
 
 			<section className="overflow-hidden apple-card">
 				<div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
@@ -217,33 +195,6 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 				<Plus className="h-4 w-4" />
 				Adicionar primeira venda
 			</button>
-		</div>
-	);
-}
-
-function SummaryCard({
-	label,
-	value,
-	hint,
-	icon,
-}: {
-	label: string;
-	value: string;
-	hint: string;
-	icon: React.ReactNode;
-}) {
-	return (
-		<div className="apple-card p-5">
-			<div className="flex items-center justify-between">
-				<span className="text-sm font-medium text-[var(--color-muted)]">{label}</span>
-				<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
-					{icon}
-				</div>
-			</div>
-			<div className="mt-3 text-[28px] font-semibold tracking-tight text-[var(--color-foreground)] tabular-nums">
-				{value}
-			</div>
-			<div className="mt-2 text-xs text-[var(--color-muted)]">{hint}</div>
 		</div>
 	);
 }

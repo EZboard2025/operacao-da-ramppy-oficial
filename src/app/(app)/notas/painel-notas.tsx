@@ -1,5 +1,6 @@
 "use client";
 
+import { CabecalhoPagina } from "@/components/cabecalho-pagina";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -27,12 +28,9 @@ export function PainelNotas({ notas }: { notas: NotaResumo[] }) {
 		<aside
 			className={`${naLista ? "block" : "hidden md:block"} w-full shrink-0 md:sticky md:top-28 md:max-h-[calc(100vh-8.5rem)] md:w-[300px] md:overflow-y-auto`}
 		>
-			<header className="mb-4 md:mb-5">
-				<h1 className="text-[22px] font-semibold tracking-tight text-[var(--color-foreground)] sm:text-[28px]">
-					Notas
-				</h1>
-				<p className="mt-1 text-sm text-[var(--color-muted)]">Seu espaço e o da equipe.</p>
-			</header>
+			<div className="mb-4 md:mb-5">
+				<CabecalhoPagina titulo="Notas" descricao="Seu espaço e o da equipe." />
+			</div>
 
 			{erro && <p className="mb-3 text-sm text-[var(--color-danger)]">{erro}</p>}
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { BotaoPrincipal, CabecalhoPagina } from "@/components/cabecalho-pagina";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -142,34 +143,18 @@ export function EventosClient({
 		});
 	};
 
-	const totalContatos = contatos.length;
-
 	return (
 		<div className="flex flex-col gap-6">
-			<header className="flex flex-wrap items-center justify-between gap-3">
-				<div>
-					<div className="flex items-center gap-2">
-						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
-							<CalendarDays className="h-4 w-4" />
-						</div>
-						<h1 className="text-[28px] font-semibold tracking-tight text-[var(--color-foreground)]">
-							Eventos
-						</h1>
-					</div>
-					<p className="mt-1 text-sm text-[var(--color-muted)]">
-						Contatos que a gente captou em cada evento · {eventos.length} evento(s) ·{" "}
-						{totalContatos} contato(s)
-					</p>
-				</div>
-				<button
-					type="button"
-					onClick={() => setModalEvento({ tipo: "criar" })}
-					className="flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)]"
-				>
-					<Plus className="h-4 w-4" />
-					Novo evento
-				</button>
-			</header>
+			<CabecalhoPagina
+				titulo="Eventos"
+				descricao="Contatos captados em cada evento, com envio pro Pipedrive."
+				acao={
+					<BotaoPrincipal onClick={() => setModalEvento({ tipo: "criar" })}>
+						<Plus className="h-4 w-4" />
+						Novo evento
+					</BotaoPrincipal>
+				}
+			/>
 
 			{erro && (
 				<div className="rounded-lg border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-4 py-2 text-sm text-[var(--color-danger)]">

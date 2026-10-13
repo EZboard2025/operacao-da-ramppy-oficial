@@ -1,17 +1,10 @@
 "use client";
 
+import { Indicadores } from "@/components/indicadores";
+import { BotaoPrincipal, CabecalhoPagina } from "@/components/cabecalho-pagina";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-	Wallet,
-	Plus,
-	TrendingUp,
-	CheckCircle2,
-	CircleDashed,
-	X,
-	Trash2,
-	Pencil,
-} from "lucide-react";
+import { Wallet, Plus, CheckCircle2, CircleDashed, X, Trash2, Pencil } from "lucide-react";
 import {
 	type Custo,
 	type CustoCobranca,
@@ -58,42 +51,36 @@ export function CustosClient({ custos }: { custos: Custo[] }) {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<header className="flex items-center justify-between">
-				<div>
-					<h1 className="text-[28px] font-semibold tracking-tight text-[var(--color-foreground)]">
-						Custos
-					</h1>
-				</div>
-				<button
-					type="button"
-					onClick={() => setModal({ tipo: "criar" })}
-					className="flex items-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-strong)]"
-				>
-					<Plus className="h-4 w-4" />
-					Novo lançamento
-				</button>
-			</header>
+			<CabecalhoPagina
+				titulo="Custos"
+				descricao="Serviços e assinaturas que a operação paga por mês."
+				acao={
+					<BotaoPrincipal onClick={() => setModal({ tipo: "criar" })}>
+						<Plus className="h-4 w-4" />
+						Novo lançamento
+					</BotaoPrincipal>
+				}
+			/>
 
-			<section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-				<SummaryCard
-					label="Custo mensal total"
-					value={formatBRL(totalMensal)}
-					hint={`${custos.length} ${custos.length === 1 ? "serviço listado" : "serviços listados"}`}
-					icon={<Wallet className="h-5 w-5" />}
-				/>
-				<SummaryCard
-					label="Custo anual estimado"
-					value={formatBRL(totalAnual)}
-					hint="Projeção (mensal × 12)"
-					icon={<TrendingUp className="h-5 w-5" />}
-				/>
-				<SummaryCard
-					label="Serviços ativos"
-					value={`${ativos} de ${custos.length}`}
-					hint={`${custos.length - ativos} a confirmar`}
-					icon={<CheckCircle2 className="h-5 w-5" />}
-				/>
-			</section>
+			<Indicadores
+				itens={[
+					{
+						rotulo: "Custo mensal total",
+						valor: formatBRL(totalMensal),
+						detalhe: `${custos.length} ${custos.length === 1 ? "serviço listado" : "serviços listados"}`,
+					},
+					{
+						rotulo: "Custo anual estimado",
+						valor: formatBRL(totalAnual),
+						detalhe: "Projeção (mensal × 12)",
+					},
+					{
+						rotulo: "Serviços ativos",
+						valor: `${ativos} de ${custos.length}`,
+						detalhe: `${custos.length - ativos} a confirmar`,
+					},
+				]}
+			/>
 
 			<section className="overflow-hidden apple-card">
 				<div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
@@ -204,33 +191,6 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 				<Plus className="h-4 w-4" />
 				Adicionar primeiro custo
 			</button>
-		</div>
-	);
-}
-
-function SummaryCard({
-	label,
-	value,
-	hint,
-	icon,
-}: {
-	label: string;
-	value: string;
-	hint: string;
-	icon: React.ReactNode;
-}) {
-	return (
-		<div className="apple-card p-5">
-			<div className="flex items-center justify-between">
-				<span className="text-sm font-medium text-[var(--color-muted)]">{label}</span>
-				<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--color-brand)]/10 text-[var(--color-brand-strong)]">
-					{icon}
-				</div>
-			</div>
-			<div className="mt-3 text-[28px] font-semibold tracking-tight text-[var(--color-foreground)] tabular-nums">
-				{value}
-			</div>
-			<div className="mt-2 text-xs text-[var(--color-muted)]">{hint}</div>
 		</div>
 	);
 }
